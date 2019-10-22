@@ -1,10 +1,10 @@
 ;==========================================================================
-; MUSICLALF Ver.1.0～1.2共通 プログラムソース
+; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : kbd.asm
 ; 機能 : FM音源音色エディタ
-; PROGRAMED BY YUZO KOSHIRO
+; 更新日：2019/10/22
 ;==========================================================================
-; ヘッダ編集/ソース修正 : @mucom88
+; ※本ソースはMUSICLALF Ver.1.0～1.2のkbd.asmと同等です。
 ;==========================================================================
 	
 	
@@ -969,10 +969,10 @@ GRAPH:
 	RET
 	
 GRAPH2:
-	LD	(LINEMEM+2),A 	; SET YMAX
-	LD	(LINEMEM+18),A
+	LD	(LINERAM+2),A 	; SET YMAX
+	LD	(LINERAM+18),A
 	SUB	32
-	LD	(LINEMEM+6),A
+	LD	(LINERAM+6),A
 	
 	LD	C,(IX)     	; AR
 	LD	A,32
@@ -985,7 +985,7 @@ GRAPH2:
 	ADC	A,D
 	SUB	E
 	LD	D,A
-	LD	(LINEMEM+4),DE
+	LD	(LINERAM+4),DE
 	
 	LD	A,32
 	LD	C,(IX+4)        ; DR
@@ -995,7 +995,7 @@ GRAPH2:
 	ADC 	A,D
 	SUB	E
 	LD	D,A
-	LD	(LINEMEM+8),DE
+	LD	(LINERAM+8),DE
 	
 	LD	A,32
 	ADD	A,E
@@ -1003,30 +1003,30 @@ GRAPH2:
 	ADC 	A,D
 	SUB	E
 	LD	D,A
-	LD	(LINEMEM+12),DE
+	LD	(LINERAM+12),DE
 	
 	PUSH	DE
 	
 	LD	A,(IX+16)	; SL
 	ADD	A,A             ; *2
 	LD	C,A
-	LD	A,(LINEMEM+6)
+	LD	A,(LINERAM+6)
 	ADD	A,C
-	LD	(LINEMEM+10),A
+	LD	(LINERAM+10),A
 	LD	C,A
 	
 	LD      A,(IX+8)        ; SR
 	SRL	A               ; *2/1
 	ADD	A,C
 	LD	C,A
-	LD	A,(LINEMEM+2)	; YMAX
+	LD	A,(LINERAM+2)	; YMAX
 	CP	C
 	LD	A,C
 	JR 	NC,LSKIP1
-	LD	A,(LINEMEM+2)
+	LD	A,(LINERAM+2)
 	
 LSKIP1:
-	LD	(LINEMEM+14),A
+	LD	(LINERAM+14),A
 	
 	POP	DE
 	LD	A,(IX+12)     	; RR
@@ -1041,28 +1041,28 @@ LSKIP1:
 	ADC 	A,D
 	SUB	E
 	LD	D,A
-	LD	(LINEMEM+16),DE
+	LD	(LINERAM+16),DE
 	
 	LD	C,05EH
-	LD	HL,LINEMEM
+	LD	HL,LINERAM
 	CALL	LINE
 	
 	LD	C,05EH
-	LD	HL,LINEMEM+4
+	LD	HL,LINERAM+4
 	CALL	LINE
 	
 	LD	C,05EH
-	LD	HL,LINEMEM+8
+	LD	HL,LINERAM+8
 	CALL	LINE
 	
 	LD	C,05DH
-	LD	HL,LINEMEM+12
+	LD	HL,LINERAM+12
 	CALL	LINE
 	
 	RET
 	
 	
-LINEMEM:
+LINERAM:
 	DW	8*38,52,8*38,20,8*38,52,8*38,52,8*38,52
 LINE_X:
 	DW	0

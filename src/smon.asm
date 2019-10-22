@@ -1,10 +1,10 @@
 ;==========================================================================
-; MUSICLALF Ver.1.0～1.2共通 プログラムソース
+; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : smon.asm
 ; 機能 : 演奏モニタ
-; PROGRAMED BY YUZO KOSHIRO
+; 更新日：2019/10/22
 ;==========================================================================
-; ヘッダ編集/ソース修正 : @mucom88
+; ※本ソースはMUSICLALF Ver.1.0～1.2共通のsmon.asmwを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -72,8 +72,19 @@ SCEDIT:	EQU	5F92H	;ｽｸﾘｰﾝ ｴﾃﾞｨｯﾄ
 STOPKC:	EQU	35C2H	;ｽﾄｯﾌﾟｷｰ ﾁｪｯｸ
 BUFCLR:	EQU	35D9H	;ｷｰﾊﾞｯﾌｧｸﾘｱ
 	
-DSPMSG:	EQU	0AB00H
+DSPMSG:EQU	0AA80H			;■変更前：expandルーチンのアドレス変更
 KEYCHK:	EQU	DSPMSG+3*5
+	
+; -- 拡張RAM アクセス設定ルーチン --	;■追記
+	
+ERAM00:	EQU	0AFB0H			;■  拡張RAM ライト不可/リード不可
+ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
+ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
+ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
+ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
+ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
+ERAMB2:	EQU	ERAM00+18		;■  拡張RAM カード0/バンク2
+ERAMB3:	EQU	ERAM00+21		;■  拡張RAM カード0/バンク3
 	
 	
 	JP	PRNWK
@@ -579,7 +590,9 @@ CV2:
 	LD	HL,OTOWK
 	LD	DE,6000H
 	LD	BC,32
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	LDIR
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	LD	HL,6001H
 	RET
 	

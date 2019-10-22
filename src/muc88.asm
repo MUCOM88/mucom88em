@@ -1,11 +1,10 @@
 ;==========================================================================
-; MUSICLALF Ver.1.2 プログラムソース
-; ファイル名 : muc88.asm
+; MUCOM88 Extended Memory Edition (MUCOM88em)
+; ファイル名 : muc88.asm (Z80アセンブラソース)
 ; 機能 : コンパイラ(メイン)
-; PROGRAMED BY YUZO KOSHIRO
+; 更新日：2019/10/22
 ;==========================================================================
-; ヘッダ編集/ソース修正 : @mucom88
-; ※本ソースはMUSICLALF Ver.1.1のmuc88.asmから差分修正にて作成した物です。
+; ※本ソースはMUSICLALF Ver.1.2のmuc88.asmを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -50,8 +49,8 @@ VOLUME:	EQU	OTONUM+1; NOW VOLUME
 LINKPT:	EQU	VOLUME+1; LINK POINTER
 ENDADR:	EQU	LINKPT+2
 OCTINT:	EQU	ENDADR+2
-SIFTDA2:EQU	OCTINT+1		;■追記
-KEYONR:	EQU	SIFTDA2+1		;■
+SIFTDA2:EQU	OCTINT+1
+KEYONR:	EQU	SIFTDA2+1
 	
 MWRITE:	EQU	9000H
 MWRIT2:	EQU	MWRITE+3
@@ -98,17 +97,20 @@ STVOL:	EQU	START+3*9
 ENBL:	EQU	START+3*10
 INFADR:	EQU	START+3*12
 	
-MU_NUM:	EQU	0C200H	;ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ
+;MU_NUM:EQU	0C200H	;ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ			;■変更前：曲データ開始アドレス
+MU_NUM:	EQU	00000H	;ｺﾝﾊﾟｲﾙﾁｭｳ ﾉ MUSICﾅﾝﾊﾞｰ			;■変更後
 OTODAT:	EQU	MU_NUM+1;FMｵﾝｼｮｸ ｶﾞ ｶｸﾉｳｻﾚﾙ ｱﾄﾞﾚｽﾄｯﾌﾟ ｶﾞ ﾊｲｯﾃｲﾙ
 SSGDAT:	EQU	MU_NUM+3;SSG...
 MU_TOP:	EQU	MU_NUM+5; ﾐｭｰｼﾞｯｸ ﾃﾞｰﾀ (ｱﾄﾞﾚｽﾃｰﾌﾞﾙ ﾌｸﾑ) ｽﾀｰﾄ ｱﾄﾞﾚｽ
 MAXCHN:	EQU	11	; ﾂｶﾜﾚﾙ ｵﾝｹﾞﾝｽｳ ﾉ MAX
 FMLIB:EQU	6000H	; ｵﾝｼｮｸﾗｲﾌﾞﾗﾘ ｱﾄﾞﾚｽ
-SSGLIB:	EQU	5E00H
+;SSGLIB:EQU	5E00H						;■変更前：SSG音色データ開始アドレス
+SSGLIB:	EQU	0C200H						;■変更後
 	
 CLS1:	EQU	05F0EH
 KBD:	EQU	09A00H
-DSPMSG:	EQU	0AB00H
+;DSPMSG:EQU	0AB00H						;■変更前：expandルーチン開始アドレス
+DSPMSG:	EQU	0AA80H						;■変更後
 FOUND:	EQU	DSPMSG+3
 PRNFAC:	EQU	FOUND+3
 FVTEXT:	EQU	PRNFAC+3
@@ -139,6 +141,19 @@ DEFVSSG:EQU	DEFVOICE+32
 JCLOCK:	EQU	DEFVSSG+32
 JPLINE:	EQU	JCLOCK+2
 	
+	
+; -- 拡張RAM アクセス設定ルーチン --	;■追記
+					;■
+ERAM00:	EQU	0AFB0H			;■  拡張RAM ライト不可/リード不可
+ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
+ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
+ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
+ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
+ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
+ERAMB2:	EQU	ERAM00+18		;■  拡張RAM カード0/バンク2
+ERAMB3:	EQU	ERAM00+21		;■  拡張RAM カード0/バンク3
+	
+	
 ;-<
 	JP	CINT
 	JP	GETADR
@@ -148,6 +163,7 @@ CINT:
 CI2:
 	LD	(0EEA7H),A
 	LD	(0EEA8H),HL
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	RET
 COMPIL:
 	PUSH	HL
@@ -262,24 +278,26 @@ REPST:
 	
 KBDSUB:
 	DI
-	CALL	RAM
-	LD	HL,4800H
+;	CALL	RAM			;■削除
+;	LD	HL,4800H		;■変更前：転送元アドレス
+	LD	HL,0C400H		;■変更後
 	LD	DE,09A00H
-	LD	BC,1600H
+;	LD	BC,1600H		;■変更前：転送データサイズ
+	LD	BC,1300H		;■変更後
 	PUSH	DE
 	PUSH	HL
 	PUSH	BC
 	CALL	EXCG
-	CALL	ROM
+;	CALL	ROM			;■削除
 	EI
 	CALL	KBD
 	DI
-	CALL	RAM
+;	CALL	RAM			;■削除
 	POP	BC
 	POP	DE
 	POP	HL
 	CALL	EXCG
-	CALL	ROM
+;	CALL	ROM			;■削除
 	EI
 	POP	HL
 	RET
@@ -310,11 +328,13 @@ DEBFCH:
 	RET
 CMP1:
 	DI
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	LD	HL,VPCO
 	INC	(HL)
 	JR	CMP2
 COMPI1:
 	DI
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	XOR	A
 	LD	(VPCO),A
 CMP2:
@@ -613,8 +633,8 @@ CMPE2:
 	LD	(REPCOUNT),A
 	LD	(TV_OFS),A
 	LD	(SIFTDAT),A
-	LD	(SIFTDA2),A		;■追記
-	LD	(KEYONR),A		;■
+	LD	(SIFTDA2),A
+	LD	(KEYONR),A
 	LD	(BEFRST),A
 	LD	(TIEFG),A
 	JP	CSTART2
@@ -849,6 +869,7 @@ VCON6:
 	CALL	PRNFAC
 PGMEND:
 	DI
+	CALL	ERAM11			;■追記：拡張RAM ライト可/リード可
 	CALL	INIT
 	CALL	WORKINIT
 	
@@ -951,6 +972,7 @@ CMPEN2:
 	
 	LD	A,1
 	LD	(ESCAPE),A
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	EI
 	RET
 	
@@ -1010,7 +1032,7 @@ FCOMP13:
 	
 	LD	(FCP18+1),A	; STORE TONE
 	CALL	STLIZM
-	CALL	FCOMP1X			;■追記
+	CALL	FCOMP1X
 	CALL	TCLKSUB
 	LD	C,A
 	LD	A,(BEFCO)
@@ -1043,22 +1065,22 @@ FCOMP16:
 FC162:
 	LD	(FCP18+1),A	; STORE TONE
 	CALL	STLIZM	; LIZM SET
-	CALL	FCOMP1X			;■追記
+	CALL	FCOMP1X
 	CALL	TCLKSUB	; ﾄｰﾀﾙｸﾛｯｸ ｶｻﾝ
 	CALL	FCOMP17
 	RET
 ;
-FCOMP1X:				;■追記
-	LD	C,A			;■
-	LD	A,(KEYONR)		;■
-	PUSH	AF			;■
-	ADD	A,C			;■
-	LD	C,A			;■
-	POP	AF			;■
-	NEG				;■
-	LD	(KEYONR),A		;■
-	LD	A,C			;■
-	RET				;■
+FCOMP1X:
+	LD	C,A
+	LD	A,(KEYONR)
+	PUSH	AF
+	ADD	A,C
+	LD	C,A
+	POP	AF
+	NEG
+	LD	(KEYONR),A
+	LD	A,C
+	RET
 	
 FCOMP17:
 	LD	(BEFCO+1),A
@@ -1158,16 +1180,13 @@ COMTBL:
 	JP	TIMERB
 	JP	SETCLK
 	JP	COMOVR
-;	JP	SETKST			;■修正前
-	JP	SETKS2			;■修正後
+	JP	SETKS2
 	
 	JP	SETRJP
 	JP	TOTALV
 	JP	SETBEF
-;	JP	SETHE			;■修正前
-	JP	SETKST			;■修正後
-;	JP	SETHEP			;■修正前
-	JP	SETKON			;■修正後
+	JP	SETKST
+	JP	SETKON
 	
 	JP	SETDCO
 	JP	SETLR
@@ -1545,28 +1564,6 @@ SETDCO:
 	LD	(COUNT),A
 	JP	FCOMP12
 	
-; *	SET HARD ENVE TYPE/FLAG	*
-;	
-;SETHE:					;■削除
-;	INC	HL			;■
-;	LD	A,0FFH			;■
-;	LD	E,0F1H	; 2nd COM	;■
-;	CALL	MWRITE			;■
-;	CALL	REDATA			;■
-;	LD	A,E			;■
-;	CALL	MWRIT2			;■
-;	JP	FCOMP1			;■
-;SETHEP:				;■
-;	INC	HL			;■
-;	LD	A,0FFH			;■
-;	LD	E,0F2H			;■
-;	CALL	MWRITE			;■
-;	CALL	REDATA			;■
-;	LD	A,E			;■
-;	LD	E,D			;■
-;	CALL	MWRITE	; 2ﾊﾞｲﾄﾃﾞｰﾀ ｶｸ	;■
-;	JP	FCOMP1			;■
-	
 ; *	BEFORE CODE	*
 	
 SETBEF:
@@ -1630,13 +1627,13 @@ TOTALV:
 TV_OFS:
 	DB	0		; TOTAL V. OFFSET
 	
-; *	KEY ON REVISE	*		;■追記
-					;■
-SETKON:					;■
-	CALL	ERRT			;■
-	LD	A,E			;■
-	LD	(KEYONR),A		;■
-	JP	FCOMP1			;■
+; *	KEY ON REVISE	*
+	
+SETKON:
+	CALL	ERRT
+	LD	A,E
+	LD	(KEYONR),A
+	JP	FCOMP1
 	
 ; *	KEY SHIFT	*
 
@@ -1646,13 +1643,13 @@ SETKST:
 	LD	(SIFTDAT),A
 	JP	FCOMP1
 	
-; *	KEY SHIFT (k)	*		;■追記
-					;■
-SETKS2:					;■
-	CALL	ERRT			;■
-	LD	A,E			;■
-	LD	(SIFTDA2),A		;■
-	JP	FCOMP1			;■
+; *	KEY SHIFT (k)	*
+	
+SETKS2:
+	CALL	ERRT
+	LD	A,E
+	LD	(SIFTDA2),A
+	JP	FCOMP1
 	
 ; *	CLOCK SET	*
 	
@@ -3057,10 +3054,14 @@ WORKGET:
 	DEC	A
 	LD	(MU_NUM),A
 	CALL	TBCLR4		; ﾃｰﾌﾞﾙｸﾘｱ
+	CALL	ERAM11			;■追記：拡張RAM ライト可/リード可
 	LD	A,(MU_NUM)
 	CALL	GETTBL
 	LD	(DATTBL),HL
 	LD	(MDATA),DE
+	LD	(X0001+1),A		;■追記
+	CALL	ERAM10			;■  拡張RAM ライト可/リード不可
+X0001:	LD	A,0			;■
 	RET
 	
 ; --	Aｷｮｸﾒ ﾉ ﾃｰﾌﾞﾙｾﾝﾄｳｱﾄﾞﾚｽ ﾄ ｵﾝｶﾞｸﾃﾞｰﾀｾﾝﾄｳｱﾄﾞﾚｽ ｦ ﾓﾄﾒﾙ	--
@@ -3107,6 +3108,7 @@ TBCLR4:
 	CALL	MULT
 	INC	HL
 	PUSH	HL
+	CALL	ERAM11			;■追記：拡張RAM ライト可/リード可
 	LD	A,(MU_NUM)
 	CALL	GETTBL
 	LD	D,H
@@ -3115,6 +3117,7 @@ TBCLR4:
 	LD	(HL),0
 	POP	BC
 	LDIR
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	RET
 	
 	
@@ -3177,9 +3180,12 @@ VICMK1:	LD 	E,(HL)
 	LD	(LINENM),BC
 	EX 	DE,HL
 	JP 	VICMK1
-	
-VICMK2:	CALL 	SCHVIC		; ｾｯﾃｲｽﾙ ｵﾄﾉｶｽﾞｦ ｷﾒﾙ
-	LD 	A,(VICNUM)
+
+VICMK2:	CALL	ERAM01					;■追記：拡張RAM ライト不可/リード可
+;VICMK2:CALL 	SCHVIC		; ｾｯﾃｲｽﾙ ｵﾄﾉｶｽﾞｦ ｷﾒﾙ	;■変更前
+	CALL 	SCHVIC					;■変更後
+	CALL	ERAM00					;■追記：拡張RAM ライト不可/リード不可
+	LD 	A,(VICNUM)	
 	OR 	A
 	JP 	Z,VICEXT
 	
@@ -3235,7 +3241,9 @@ VICMK3:	PUSH 	BC
 	
 	EX	DE,HL
 	PUSH 	HL
+	CALL	ERAM01			;■追記：拡張RAM ライト不可/リード可
 	CALL 	SETVIC
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	POP	HL
 	INC 	HL
 	INC 	HL
@@ -3425,8 +3433,8 @@ LNKTXT:	DB	3AH,8FH,0E9H,20H,20H	; 5 ｺ
 ; **	SYSTEM WORK AREA	**
 	
 MACFG:	DB	0	;0>< AS MACRO PRC
-;MESS:	DB	'[  MUSICLALF Ver:1.1 ] Address'	;■修正前
-MESS:	DB	'[  MUSICLALF Ver:1.2 ] Address'	;■修正後
+;MESS:	DB	'[  MUSICLALF Ver:1.2 ] Address'	;■変更前：メイン画面のバージョン表示
+MESS:	DB	'[ MUCOM88em 20191022 ] Address'	;■変更後
 	DB	':    -    (    )         [ 00:00 ] MODE:'
 MESNML:	DB	'NORMAL  '
 	DB	'LINC    '

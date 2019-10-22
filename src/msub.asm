@@ -1,11 +1,10 @@
 ;==========================================================================
-; MUSICLALF Ver.1.2 プログラムソース
-; ファイル名 : msub.asm
-; 機能 : コンパイラ(サブ)
-; PROGRAMED BY YUZO KOSHIRO
+; MUCOM88 Extended Memory Edition (MUCOM88em)
+; ファイル名 : msub.asm (Z80アセンブラソース)
+; 機能 : N88BASIC コマンド拡張
+; 更新日：2019/10/22
 ;==========================================================================
-; ヘッダ編集/ソース修正 : @mucom88
-; ※本ソースはMUSICLALF Ver.1.1のmsub.asmから差分修正にて作成した物です。
+; ※本ソースはMUSICLALF Ver.1.2のmsub.asmwを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -33,23 +32,37 @@ FD_FLG:		EQU	SE_SET+2
 FD_EFG:		EQU	FD_FLG+1
 ESCAPE:		EQU	FD_EFG+1
 MINUSF:		EQU	ESCAPE+1
-BEFRST:		EQU	MINUSF+1		;■追記
-BEFCO:		EQU	BEFRST+1		;■
-BEFTONE:	EQU	BEFCO+2			;■
-TIEFG:		EQU	BEFTONE+9		;■
-COMNO:		EQU	TIEFG+1			;■
-ASEMFG:		EQU	COMNO+1			;■
-VDDAT:		EQU	ASEMFG+1		;■
-OTONUM:		EQU	VDDAT+1			;■
-VOLUME:		EQU	OTONUM+1		;■
-LINKPT:		EQU	VOLUME+1		;■
-ENDADR:		EQU	LINKPT+2		;■
-OCTINT:		EQU	ENDADR+2		;■
-SIFTDA2:	EQU	OCTINT+1		;■
-KEYONR:		EQU	SIFTDA2+1		;■
+BEFRST:		EQU	MINUSF+1
+BEFCO:		EQU	BEFRST+1
+BEFTONE:	EQU	BEFCO+2
+TIEFG:		EQU	BEFTONE+9
+COMNO:		EQU	TIEFG+1
+ASEMFG:		EQU	COMNO+1
+VDDAT:		EQU	ASEMFG+1
+OTONUM:		EQU	VDDAT+1
+VOLUME:		EQU	OTONUM+1
+LINKPT:		EQU	VOLUME+1
+ENDADR:		EQU	LINKPT+2
+OCTINT:		EQU	ENDADR+2
+SIFTDA2:	EQU	OCTINT+1
+KEYONR:		EQU	SIFTDA2+1
 
-MEMEND:		EQU	0E3F0H	;0DDF0H
+;MEMEND:	EQU	0E3F0H	;0DDF0H	;■変更：曲データ領域の終了判定用アドレス
+MEMEND:		EQU	07FE5H		;■
 ERRORTBL:	EQU	08800H
+	
+	
+; -- 拡張RAM アクセス設定ルーチン --	;■追記
+	
+ERAM00:	EQU	0AFB0H			;■  拡張RAM ライト不可/リード不可
+ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
+ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
+ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
+ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
+ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
+ERAMB2:	EQU	ERAM00+18		;■  拡張RAM カード0/バンク2
+ERAMB3:	EQU	ERAM00+21		;■  拡張RAM カード0/バンク3
+	
 	
 	JP	MWRITE
 	JP	MWRIT2
@@ -266,9 +279,10 @@ ERROR:
 	POP	HL
  	LD	(0EF86H),HL
  	POP	HL
+	CALL	ERAM00				;■追記：拡張RAM ライト不可/リード不可
 	LD	E,2 		; ERROR CODE
 	JP	03B3H		; ERROR PROCESS
-	
+
 	RET
 ERLI:
 	DB	20H,0,0,0,0,0,0
@@ -375,9 +389,9 @@ TONEX2:
 	
 KEYSIFT:
 	LD	A,(SIFTDAT)
-	LD	L,A		;■追加
-	LD	A,(SIFTDA2)	;■
-	ADD	A,L		;■
+	LD	L,A
+	LD	A,(OCTINT+1)
+	ADD	A,L
 	OR	A
 	RET	Z
 	
@@ -399,9 +413,9 @@ KEYSIFT:
 	LD	H,A	; HL=OCTAVE*12+KEYCODE
 	
 	LD	A,(SIFTDAT)
-	LD	E,A		;■追加
-	LD	A,(SIFTDA2)	;■
-	ADD	A,E		;■
+	LD	E,A
+	LD	A,(OCTINT+1)
+	ADD	A,E
 	CP	128
 	JR	C,KYS2
 	
@@ -1131,10 +1145,10 @@ FCOMS:			; COMMANDs
 	DB      '/'	; REPEAT JUMP
 	DB	'V'	; TOTAL VOLUME OFFSET
 	DB	'\'	; BEFORE CODE
-;	DB	's'	; HARD ENVE SET		;■変更前
-;	DB	'm'	; HARD ENVE PERIOD	;■
-	DB	'k'	; KEY SHIFT 2		;■変更後
-	DB	's'	; KEY ON REVISE		;■
+;	DB	's'	; HARD ENVE SET
+;	DB	'm'	; HARD ENVE PERIOD
+	DB	'k'	; KEY SHIFT 2
+	DB	's'	; KEY ON REVISE
 	
 	DB	'%'	; SET LIZM(DIRECT CLOCK)
 	DB	'p'	; STEREO PAN
@@ -1157,3 +1171,4 @@ FCOMS:			; COMMANDs
 	
 ERRORMSG:
 	DB 'ERROR MESSAGE :',0
+	

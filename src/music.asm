@@ -1,11 +1,10 @@
 ;==========================================================================
-; MUSICLALF Ver.1.2 プログラムソース
+; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : music.asm
 ; 機能 : 演奏ルーチン
-; PROGRAMED BY YUZO KOSHIRO
+; 更新日：2019/10/22
 ;==========================================================================
-; ヘッダ編集/ソース修正 : @mucom88
-; ※本ソースはMUSICLALF Ver.1.1のmusic.asmから差分修正にて作成した物です。
+; ※本ソースはMUSICLALF Ver.1.2のmusic.asmwを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -62,7 +61,8 @@ R_TIME:	EQU	0F304H
 INT3:	EQU	0F308H
 S.ILVL:	EQU	0E6C3H
 	
-MUSICNUM:	EQU	0C200H
+;MUSICNUM:	EQU	0C200H			;■変更前：曲データ領域
+MUSICNUM:	EQU	00000H			;■変更後
 OTODAT:		EQU	MUSICNUM+1
 MU_TOP:		EQU	MUSICNUM+5
 MAXCH:		EQU	11
@@ -163,18 +163,23 @@ FDO3:
 	
 MSTART:
 	DI
+	LD	(X0001+1),A			;■追記
+	CALL	ERAM11				;■  拡張RAM ライト可/リード可
+X0001:	LD	A,0				;■
 	LD	(MUSICNUM),A
 	CALL	AKYOFF
 	CALL	SSGOFF
 	CALL	WORKINIT
 START:
 	DI
+	CALL	ERAM11				;■追記：拡張RAM ライト可/リード可
 	PUSH	HL
 	CALL	CHK
 	CALL	INT57
 	CALL	ENBL
 	CALL	TO_NML
 	POP	HL
+	CALL	ERAM00				;■追記：拡張RAM ライト不可/リード不可
 	EI
 	RET
 MSTOP:
@@ -309,7 +314,7 @@ PL_SND:
 	PUSH	BC
 	PUSH	IX
 	PUSH	IY
-	
+	CALL	ERAM11			;■追記：拡張RAM ライト可/リード可
 PLSET1:
  	LD	E,38H		;  TIMER-OFF DATA
  	LD	D,27H
@@ -333,6 +338,7 @@ PLSND1:
 	CALL	FDOUT
 	CALL	TSC
 PLSND3:
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	EI
 	
 	LD	A,(S.ILVL)
@@ -860,10 +866,8 @@ FMCOM:
 	
 FMCOM2:
 	JP	PVMCHG		;FFF0-PCM VOLUME MODE
-;	JP	HRDENV		;FFF1-HARD ENVE SET 's'		;■修正前
-	JP	NTMEAN						;■修正後
-;	JP	ENVPOD		;FFF2-HARD ENVE PERIOD		;■修正前
-	JP	NTMEAN						;■修正後
+	JP	NTMEAN
+	JP	NTMEAN
 	JP	REVERVE		;FFF3-ﾘﾊﾞｰﾌﾞ
 	JP	REVMOD		;FFF4-ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
 	JP	REVSW		;FFF5-ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
@@ -1907,25 +1911,9 @@ SSSUB4:
 	JR	SSSUB9
 	
 SSSUBF:			; KEYON ｻﾚﾀﾄｷ ﾉ ｼｮﾘ
-;	BIT	7,(IX+33)				;■削除
-;	JR	Z,SSSUBG	; NOT HARD ENV.		;■
-	
-; ---	HARD ENV. KEY ON	---
-	
-;	LD	E,16					;■
-;	LD	D,(IX+7)				;■
-;	CALL	PSGOUT		; HARD ENV.KEYON	;■
-	
-;	LD	A,(IX+33)				;■
-;	AND	00001111B				;■
-;	LD	E,A					;■
-;	LD	D,0DH					;■
-;	CALL	PSGOUT					;■
-;	JR	SSSUBH					;■
 	
 ; ---	SOFT ENV. KEYON		---
 	
-SSSUBG:
 	LD	A,(IX+6)
 	AND	00001111B
 	OR	10010000B	;  TO STATE 1 (ATTACK)
@@ -1951,9 +1939,6 @@ SSSUB9:
 ;
 
 SSSUB3:
-;	BIT	7,(IX+33)					;■削除
-;	JR	NZ,SETPT	; IF HARD ENVE THEN SETPT	;■
-	
 	LD	E,A
 	LD	A,(READY)
 	OR	A
@@ -1977,17 +1962,8 @@ SNUMB:				;  SSG o1 ﾉ ｼｭｳﾊｽｳ DATA
 	
 SSSUBA:
 	
-; --	HARD ENV. KEY OFF	--
-	
-;	BIT	7,(IX+33)				;■削除
-;	JR	Z,SSUBAB	; NOT HARD ENV.		;■
-;	LD	E,0					;■
-;	LD	D,(IX+7)				;■
-;	CALL	PSGOUT		; HARD ENV.KEYOFF	;■
-	
 ; --	SOFT ENV. KEY OFF	--
 	
-;SSUBAB:						;■削除
 	BIT	5,(IX+33)
 	JR	Z,SSUBAC
 	RES	6,(IX+31)
@@ -2039,32 +2015,6 @@ PSGCOM:
 	JP	TIE
 	JP	RSKIP
 	JP	SECPRC		;FF- to sec com
-	
-; **	HARD ENVE SET	**
-	
-;HRDENV:						;■削除
-;	LD	E,(HL)					;■
-;	INC	HL					;■
-;	LD	D,0DH					;■
-;	CALL	PSGOUT					;■
-;	LD	A,E					;■
-;	OR	10000000B	; SET H.E FLAG		;■
-;	LD	(IX+33),A	; H.E MODE		;■
-;	LD	(IX+6),16				;■
-;	RET						;■
-	
-; **	HARD ENVE PERIOD	**
-	
-;ENVPOD:						;■削除
-;	LD	E,(HL)					;■
-;	INC	HL					;■
-;	LD	D,0BH					;■
-;	CALL	PSGOUT					;■
-;	LD	E,(HL)					;■
-;	INC	HL					;■
-;	INC	D					;■
-;	CALL	PSGOUT					;■
-;	RET						;■
 	
 ; **   WRITE REG   **
 	
@@ -2183,9 +2133,6 @@ VOLUPS:
 	LD	D,(HL)
 	INC	HL
 	
-;	BIT	7,(IX+33)				;■削除
-;	RET	NZ					;■
-	
 	LD	A,(IX+6)
 	LD	E,A
 	AND	00001111B
@@ -2203,8 +2150,6 @@ VOLUPS:
 ; **	PSG VOLUME	**
 	
 PSGVOL:
-;	RES	7,(IX+33)	; RES HARD ENV FLAG	;■削除
-	
 	LD	A,(IX+6)
 	AND	11110000B
 	LD	E,A
@@ -2672,9 +2617,153 @@ STT1:
 	
 STTE:
 	RET
+
+	
+;■移動：本位置にあったワークエリア(MUSIC WORK)を本ソースのラストに移動
+
+	
+; **	ｴｽｹｰﾌﾟ ｼｮﾘ	**
+	
+ESC_PRC:
+	LD	C,A
+	LD	A,(KEYBUF)
+	LD	B,A
+	LD	A,C
+	LD	(KEYBUF),A
+	CP	B
+	RET	Z
+	BIT	7,A
+	RET	NZ
+	LD	A,(ESCAPE)
+	CPL
+	LD	(ESCAPE),A
+	CALL	AKYOFF
+	CALL	SSGOFF
+	LD	A,(T_FLAG)
+	CPL
+	LD	(T_FLAG),A
+	IN	A,(8)
+	BIT	7,A
+	RET	NZ
+	CALL	MSTOP
+	RET
+	
+; **	PRINT TIME	**
+	
+TIME:
+	LD	A,(T_FLAG)
+	OR	A
+	JR	Z,TIME1
+	
+	CALL	GETTIME
+	LD	HL,0F00FH
+	CALL	CULSEC
+	LD	DE,(ALLSEC)
+	AND	A
+	SBC	HL,DE
+	CALL	CULTIM
+	CALL	PTIME
+TIME1:
+	RET
+	
+PTIME:
+	LD	A,(SEC)
+	LD	DE,0F3C8H+60
+	CALL	PTIME1
+	LD	A,(MIN)
+	LD	DE,0F3C8H+57
+	CALL	PTIME1
+	RET
+PTIME1:
+	LD	L,A
+	LD	H,0
+	CALL	HEXDEC
+	INC	HL
+	INC	HL
+	INC	HL
+	LDI
+	LDI
+	RET
+	
+; **	TIME STOP	**
+	
+TSC:
+	LD	C,11
+	LD	B,11
+	LD	A,1
+TSC2:
+	PUSH	BC
+	LD	B,A
+	CALL	WKGET
+	POP	BC
+	BIT	0,(IX+31)
+	JR	Z,TSC3
+	DEC	C
+TSC3:
+	INC	A
+	DJNZ	TSC2
+	LD	A,C
+	OR	A
+	RET	NZ
+	LD	(T_FLAG),A
+	RET
+	
+; --	Breg.CHﾉ ﾜｰｸｱﾄﾞﾚｽ ｦ ｶｴｽ	--
+	
+	;IN:B<=1-11
+	
+	
+WKGET:
+	PUSH	DE
+	LD	IY,CH1DAT-36
+	LD	IX,CH1DAT-WKLENG
+	LD	DE,WKLENG
+WG2:
+	ADD	IX,DE
+	DJNZ	WG2
+	POP	DE
+	RET
+	
+; **	ｵﾝｼｮｸｦ ﾜｰｸﾆｶｸ(8B00H->)	**
+	
+PUTWK:
+	LD	HL,8B00H
+	LD	A,D
+	SUB	30H
+	LD	D,A
+	CP	90H-30H
+	RET	NC
+	LD	A,(FMPORT)
+	OR	A
+	JR	Z,PW2
+	LD	A,D
+	ADD	A,90H-30H
+	LD	D,A
+PW2
+	LD	A,D
+	ADD	A,L
+	LD	L,A
+	ADC	A,H
+	SUB	L
+	LD	H,A
+	LD	(HL),E
+	RET
+	
+	
+; **	拡張RAM アクセス設定	;■追記
+				;■
+ERAM00:	XOR	A		;■  拡張RAM ライト不可/リード不可
+	OUT	(0E2H),A	;■
+	RET			;■
+				;■
+ERAM11: LD	A,11H		;■  拡張RAM ライト可/リード可
+	OUT	(0E2H),A	;■
+	RET			;■
 	
 	
 ; **	MUSIC WORK	**
+	
+	ORG	0BFC0H		;■追記：ワークエリアのアドレス固定
 	
 NOTSB2:	DB	0
 PVMODE:	DB	0	;PCMvolMODE
@@ -3028,129 +3117,4 @@ FNUMB:
 	DW	26AH,28FH,2B6H,2DFH,30BH,339H
 	DW      36AH,39EH,3D5H,410H,44EH,48FH
 	
-; **	ｴｽｹｰﾌﾟ ｼｮﾘ	**
 	
-ESC_PRC:
-	LD	C,A
-	LD	A,(KEYBUF)
-	LD	B,A
-	LD	A,C
-	LD	(KEYBUF),A
-	CP	B
-	RET	Z
-	BIT	7,A
-	RET	NZ
-	LD	A,(ESCAPE)
-	CPL
-	LD	(ESCAPE),A
-	CALL	AKYOFF
-	CALL	SSGOFF
-	LD	A,(T_FLAG)
-	CPL
-	LD	(T_FLAG),A
-	IN	A,(8)
-	BIT	7,A
-	RET	NZ
-	CALL	MSTOP
-	RET
-	
-; **	PRINT TIME	**
-	
-TIME:
-	LD	A,(T_FLAG)
-	OR	A
-	JR	Z,TIME1
-	
-	CALL	GETTIME
-	LD	HL,0F00FH
-	CALL	CULSEC
-	LD	DE,(ALLSEC)
-	AND	A
-	SBC	HL,DE
-	CALL	CULTIM
-	CALL	PTIME
-TIME1:
-	RET
-	
-PTIME:
-	LD	A,(SEC)
-	LD	DE,0F3C8H+60
-	CALL	PTIME1
-	LD	A,(MIN)
-	LD	DE,0F3C8H+57
-	CALL	PTIME1
-	RET
-PTIME1:
-	LD	L,A
-	LD	H,0
-	CALL	HEXDEC
-	INC	HL
-	INC	HL
-	INC	HL
-	LDI
-	LDI
-	RET
-	
-; **	TIME STOP	**
-	
-TSC:
-	LD	C,11
-	LD	B,11
-	LD	A,1
-TSC2:
-	PUSH	BC
-	LD	B,A
-	CALL	WKGET
-	POP	BC
-	BIT	0,(IX+31)
-	JR	Z,TSC3
-	DEC	C
-TSC3:
-	INC	A
-	DJNZ	TSC2
-	LD	A,C
-	OR	A
-	RET	NZ
-	LD	(T_FLAG),A
-	RET
-	
-; --	Breg.CHﾉ ﾜｰｸｱﾄﾞﾚｽ ｦ ｶｴｽ	--
-	
-	;IN:B<=1-11
-	
-	
-WKGET:
-	PUSH	DE
-	LD	IY,CH1DAT-36
-	LD	IX,CH1DAT-WKLENG
-	LD	DE,WKLENG
-WG2:
-	ADD	IX,DE
-	DJNZ	WG2
-	POP	DE
-	RET
-	
-; **	ｵﾝｼｮｸｦ ﾜｰｸﾆｶｸ(8B00H->)	**
-	
-PUTWK:
-	LD	HL,8B00H
-	LD	A,D
-	SUB	30H
-	LD	D,A
-	CP	90H-30H
-	RET	NC
-	LD	A,(FMPORT)
-	OR	A
-	JR	Z,PW2
-	LD	A,D
-	ADD	A,90H-30H
-	LD	D,A
-PW2
-	LD	A,D
-	ADD	A,L
-	LD	L,A
-	ADC	A,H
-	SUB	L
-	LD	H,A
-	LD	(HL),E
-	RET
