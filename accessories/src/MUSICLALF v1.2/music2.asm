@@ -1,11 +1,12 @@
 ;==========================================================================
-; MUSICLALF Ver.1.0 プログラムソース
-; ファイル名 : music2.asm
+; MUSICLALF Ver.1.2(MUCOM88 Ver.1.7)対応
+; ファイル名 : music2.asm (Z80アセンブラソース)
 ; 機能 : 演奏ルーチン(組込み用)
-; PROGRAMED BY YUZO KOSHIRO
+; 更新日 : 2019/10/23
 ;==========================================================================
-; ヘッダ編集/ソース修正 : @mucom88
+; ※本ソースはMUSICLALF Ver.1.0のmusic2から差分修正にて作成した物です。
 ;==========================================================================
+	
 	
 	
 VRTC:	EQU	0F302H
@@ -820,8 +821,10 @@ FMCOM:
 	
 FMCOM2:
 	JP	PVMCHG		;FFF0-PCM VOLUME MODE
-	JP	HRDENV		;FFF1-HARD ENVE SET 's'
-	JP	ENVPOD		;FFF2-HARD ENVE PERIOD
+;	JP	HRDENV		;FFF1-HARD ENVE SET 's'		;■修正前
+	JP	NTMEAN						;■修正後
+;	JP	ENVPOD		;FFF2-HARD ENVE PERIOD		;■修正前
+	JP	NTMEAN						;■修正後
 	JP	REVERVE		;FFF3-ﾘﾊﾞｰﾌﾞ
 	JP	REVMOD		;FFF4-ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
 	JP	REVSW		;FFF5-ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
@@ -1884,21 +1887,21 @@ SSSUB4:
 	JR	SSSUB9
 	
 SSSUBF:			; KEYON ｻﾚﾀﾄｷ ﾉ ｼｮﾘ
-	BIT	7,(IX+33)
-	JR	Z,SSSUBG	; NOT HARD ENV.
+;	BIT	7,(IX+33)				;■削除
+;	JR	Z,SSSUBG	; NOT HARD ENV.		;■
 	
 ; ---	HARD ENV. KEY ON	---
 	
-	LD	E,16
-	LD	D,(IX+7)
-	CALL	PSGOUT		; HARD ENV.KEYON
+;	LD	E,16					;■
+;	LD	D,(IX+7)				;■
+;	CALL	PSGOUT		; HARD ENV.KEYON	;■
 	
-	LD	A,(IX+33)
-	AND	00001111B
-	LD	E,A
-	LD	D,0DH
-	CALL	PSGOUT
-	JR	SSSUBH
+;	LD	A,(IX+33)				;■
+;	AND	00001111B				;■
+;	LD	E,A					;■
+;	LD	D,0DH					;■
+;	CALL	PSGOUT					;■
+;	JR	SSSUBH					;■
 	
 ; ---	SOFT ENV. KEYON		---
 	
@@ -1928,8 +1931,8 @@ SSSUB9:
 ;
 	
 SSSUB3:
-	BIT	7,(IX+33)
-	JR	NZ,SETPT	; IF HARD ENVE THEN SETPT
+;	BIT	7,(IX+33)					;■削除
+;	JR	NZ,SETPT	; IF HARD ENVE THEN SETPT	;■
 	
 	LD	E,A
 	LD	D,(IX+7)
@@ -1948,15 +1951,15 @@ SSSUBA:
 	
 ; --	HARD ENV. KEY OFF	--
 	
-	BIT	7,(IX+33)
-	JR	Z,SSUBAB	; NOT HARD ENV.
-	LD	E,0
-	LD	D,(IX+7)
-	CALL	PSGOUT		; HARD ENV.KEYOFF
+;	BIT	7,(IX+33)				;■削除
+;	JR	Z,SSUBAB	; NOT HARD ENV.		;■
+;	LD	E,0					;■
+;	LD	D,(IX+7)				;■
+;	CALL	PSGOUT		; HARD ENV.KEYOFF	;■
 	
 ; --	SOFT ENV. KEY OFF	--
 	
-SSUBAB:
+;SSUBAB:						;■削除
 	BIT	5,(IX+33)
 	JR	Z,SSUBAC
 	RES	6,(IX+31)
@@ -2011,29 +2014,29 @@ PSGCOM:
 	
 ; **	HARD ENVE SET	**
 	
-HRDENV:
-	LD	E,(HL)
-	INC	HL
-	LD	D,0DH
-	CALL	PSGOUT
-	LD	A,E
-	OR	10000000B	; SET H.E FLAG
-	LD	(IX+33),A	; H.E MODE
-	LD	(IX+6),16
-	RET
+;HRDENV:						;■削除
+;	LD	E,(HL)					;■
+;	INC	HL					;■
+;	LD	D,0DH					;■
+;	CALL	PSGOUT					;■
+;	LD	A,E					;■
+;	OR	10000000B	; SET H.E FLAG		;■
+;	LD	(IX+33),A	; H.E MODE		;■
+;	LD	(IX+6),16				;■
+;	RET						;■
 	
 ; **	HARD ENVE PERIOD	**
 	
-ENVPOD:
-	LD	E,(HL)
-	INC	HL
-	LD	D,0BH
-	CALL	PSGOUT
-	LD	E,(HL)
-	INC	HL
-	INC	D
-	CALL	PSGOUT
-	RET
+;ENVPOD:						;■削除
+;	LD	E,(HL)					;■
+;	INC	HL					;■
+;	LD	D,0BH					;■
+;	CALL	PSGOUT					;■
+;	LD	E,(HL)					;■
+;	INC	HL					;■
+;	INC	D					;■
+;	CALL	PSGOUT					;■
+;	RET						;■
 	
 ; **   WRITE REG   **
 	
@@ -2133,8 +2136,8 @@ VOLUPS:
 	LD	D,(HL)
 	INC	HL
 	
-	BIT	7,(IX+33)
-	RET	NZ
+;	BIT	7,(IX+33)				;■削除
+;	RET	NZ					;■
 	
 	LD	A,(IX+6)
 	LD	E,A
@@ -2153,7 +2156,7 @@ VOLUPS:
 ; **	PSG VOLUME	**
 	
 PSGVOL:
-	RES	7,(IX+33)	; RES HARD ENV FLAG
+;	RES	7,(IX+33)	; RES HARD ENV FLAG	;■削除
 	
 	LD	A,(IX+6)
 	AND	11110000B
@@ -2939,8 +2942,8 @@ OP_SEL:
 CHNUM:	DB	0
 C2NUM:	DB	0
 TB_TOP:	DW	0
-;TIMER_B:DB	0			;■修正前
-TIMER_B:DB	100			;■修正後
+;TIMER_B:DB	0				;■修正前
+TIMER_B:DB	0				;■修正後
 PRISSG:	DB	0
 	
 ; ***	ADPCM WORK	***
