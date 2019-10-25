@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : muc88.asm (Z80アセンブラソース)
 ; 機能 : コンパイラ(メイン)
-; 更新日：2019/10/22
+; 更新日：2019/10/25
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmuc88.asmを元に作成した物です。
 ;==========================================================================
@@ -106,11 +106,13 @@ MAXCHN:	EQU	11	; ﾂｶﾜﾚﾙ ｵﾝｹﾞﾝｽｳ ﾉ MAX
 FMLIB:EQU	6000H	; ｵﾝｼｮｸﾗｲﾌﾞﾗﾘ ｱﾄﾞﾚｽ
 ;SSGLIB:EQU	5E00H						;■変更前：SSG音色データ開始アドレス
 SSGLIB:	EQU	0C200H						;■変更後
+FMWORK:	EQU	0C300H						;■追記：ユーザー音色変換用ワーク(新設)
+FMWORK2:EQU	0C330H						;■追記：ユーザー音色変換用ワーク2(新設)
 	
 CLS1:	EQU	05F0EH
 KBD:	EQU	09A00H
 ;DSPMSG:EQU	0AB00H						;■変更前：expandルーチン開始アドレス
-DSPMSG:	EQU	0AA80H						;■変更後
+DSPMSG:	EQU	0AAF0H						;■変更後
 FOUND:	EQU	DSPMSG+3
 PRNFAC:	EQU	FOUND+3
 FVTEXT:	EQU	PRNFAC+3
@@ -143,15 +145,13 @@ JPLINE:	EQU	JCLOCK+2
 	
 	
 ; -- 拡張RAM アクセス設定ルーチン --	;■追記
-					;■
-ERAM00:	EQU	0AFB0H			;■  拡張RAM ライト不可/リード不可
+	
+ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
 ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
 ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
 ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
 ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
 ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
-ERAMB2:	EQU	ERAM00+18		;■  拡張RAM カード0/バンク2
-ERAMB3:	EQU	ERAM00+21		;■  拡張RAM カード0/バンク3
 	
 	
 ;-<
@@ -163,6 +163,13 @@ CINT:
 CI2:
 	LD	(0EEA7H),A
 	LD	(0EEA8H),HL
+	CALL	ERAMB1			;■追記：拡張RAM カード0/バンク1
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+	LD	DE,06000H		;■追記：FM音色データの移動 メインRAM C200H→拡張RAM カード0/バンク1 6000H
+	LD	HL,0C200H		;■
+	LD	BC,02000H		;■
+	LDIR				;■
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	RET
 COMPIL:
@@ -278,12 +285,24 @@ REPST:
 	
 KBDSUB:
 	DI
+	CALL	ERAMB1			;■追加：拡張RAM カード0/バンク1
+	CALL	ERAM10			;■追加：拡張RAM ライト可/リード不可
+	LD	HL,06000H		;■追加：6000H～7FFFHを拡張RAM(カード0/バンク1)の0000H～に退避
+	LD	DE,00000H		;■
+	LD	BC,02000H		;■
+	LDIR				;■
+	CALL	ERAM01			;■追加：拡張RAM ライト不可/リード可
+	LD	HL,06000H		;■追加：拡張RAM(カード0/バンク1)の6000H～7FFFFHをメインRAMの6000H～に複製
+	LD	DE,06000H		;■
+	LD	BC,02000H		;■
+	LDIR				;■
+	CALL	ERAM00			;■追加：拡張RAM ライト不可/リード不可
 ;	CALL	RAM			;■削除
 ;	LD	HL,4800H		;■変更前：転送元アドレス
 	LD	HL,0C400H		;■変更後
 	LD	DE,09A00H
 ;	LD	BC,1600H		;■変更前：転送データサイズ
-	LD	BC,1300H		;■変更後
+	LD	BC,01300H		;■変更後
 	PUSH	DE
 	PUSH	HL
 	PUSH	BC
@@ -299,6 +318,13 @@ KBDSUB:
 	CALL	EXCG
 ;	CALL	ROM			;■削除
 	EI
+	CALL	ERAM01			;■追加：拡張RAM ライト不可/リード可
+	LD	HL,00000H		;■追加：拡張RAM(カード0/バンク1)の0000H～1FFFHをメインRAMの6000H～に複製
+	LD	DE,06000H		;■
+	LD	BC,02000H		;■
+	LDIR				;■
+	CALL	ERAM00			;■追加：拡張RAM ライト不可/リード不可
+	CALL	ERAMB0			;■追加：拡張RAM カード0/バンク0
 	POP	HL
 	RET
 EXCG:
@@ -724,7 +750,8 @@ VOICECONV1:
 	POP	HL
 	POP	DE
 	JR	C,VCON0
-	LD	HL,FMLIB+1
+;	LD	HL,FMLIB+1		;■変更前：ユーザー音色変換ワークを使用に変更
+	LD	HL,FMWORK+1		;■変更後
 	JR	VCON01
 VCON0:
 	LD	A,0
@@ -732,6 +759,15 @@ VCON0:
 	INC	HL	; HL= VOICE INDEX
 VCON01:
 	PUSH	DE
+	CALL	ERAMB1			;■追記：拡張RAM カード0/バンク1
+	CALL	ERAM01			;■追記：拡張RAM ライト不可/リード可
+	LD	BC,25			;■追記：拡張RAM(カード0/バンク1)上のFM音色データをメインRAMのワークに一時複製
+	LD	DE,FMWORK2		;■
+	LDIR				;■
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
+	PUSH	HL			;■追記：ワーク上のFM音色データを曲データに追加
+	LD	HL,FMWORK2		;■
 	LD	BC,12
 	LD	DE,(ENDADR)
 	LDIR
@@ -747,6 +783,7 @@ VCON1:
 	LDIR
 	LD	(ENDADR),DE
 	
+	POP	HL			;■追加
 	POP	DE
 	POP	BC
 	POP	AF
@@ -2729,15 +2766,21 @@ SETVN:
 	CP	6
 	JP	NC,ERRDC
 	INC	HL
-	LD	DE,6020H+26
+;	LD	DE,6020H+26		;■修正前：ラベル指定に変更
+	LD	DE,FMLIB+20H+26		;■修正後
 	LD	BC,0FF01H
+	CALL	ERAMB1			;■追記：拡張RAM カード0/バンク1
 SETVN1:
 	PUSH	BC
 	LD	B,6
 	PUSH	HL
 	PUSH	DE
 SETVN2:
+	CALL	ERAM01			;■追記：拡張RAM ライト不可/リード可
 	LD	A,(DE)
+	LD	(X0001+1),A		;■追記：拡張RAM ライト不可/リード不可
+	CALL	ERAM00			;■
+X0001:	LD	A,0			;■
 	CP	(HL)
 	JR	NZ,SETVN4
 	INC	HL
@@ -2749,6 +2792,8 @@ SETVN2:
 	POP	DE
 	POP	HL
 	POP	BC
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	JP	ERRVO
 SETVN4:
 	POP	DE
@@ -2759,6 +2804,8 @@ SETVN4:
 	POP	BC
 	INC	C
 	DJNZ	SETVN1
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	JP	ERRVO
 SETVN6:
 	INC	HL
@@ -2767,11 +2814,16 @@ SETVN6:
 	POP	AF
 	DEC	B
 	JR	Z,SETVN8
+	CALL	ERAM01			;■追記：拡張RAM ライト不可/リード可
 	LD	A,(DE)
 	CP	20H
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	JP	NZ,ERRVO
 SETVN8:
 	LD	E,C
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	JP	STCL2
 	
 ; --	VOICE ｶﾞ ﾄｳﾛｸｽﾞﾐｶ?	--
@@ -3059,9 +3111,9 @@ WORKGET:
 	CALL	GETTBL
 	LD	(DATTBL),HL
 	LD	(MDATA),DE
-	LD	(X0001+1),A		;■追記
+	LD	(X0002+1),A		;■追記
 	CALL	ERAM10			;■  拡張RAM ライト可/リード不可
-X0001:	LD	A,0			;■
+X0002:	LD	A,0			;■
 	RET
 	
 ; --	Aｷｮｸﾒ ﾉ ﾃｰﾌﾞﾙｾﾝﾄｳｱﾄﾞﾚｽ ﾄ ｵﾝｶﾞｸﾃﾞｰﾀｾﾝﾄｳｱﾄﾞﾚｽ ｦ ﾓﾄﾒﾙ	--
@@ -3405,7 +3457,11 @@ VICPRT:
 	LD	BC,32-6
 	ADD	HL,BC
 	LD	BC,6
+	CALL	ERAMB1			;■追記：拡張RAM カード0/バンク1
+	CALL	ERAM01			;■追記：拡張RAM ライト不可/リード可
 	LDIR
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
+	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	
 	XOR 	A
 	LD	(DE),A		; SET LINE END MARK
@@ -3434,7 +3490,7 @@ LNKTXT:	DB	3AH,8FH,0E9H,20H,20H	; 5 ｺ
 	
 MACFG:	DB	0	;0>< AS MACRO PRC
 ;MESS:	DB	'[  MUSICLALF Ver:1.2 ] Address'	;■変更前：メイン画面のバージョン表示
-MESS:	DB	'[ MUCOM88em 20191022 ] Address'	;■変更後
+MESS:	DB	'[ MUCOM88em 20191025 ] Address'	;■変更後
 	DB	':    -    (    )         [ 00:00 ] MODE:'
 MESNML:	DB	'NORMAL  '
 	DB	'LINC    '

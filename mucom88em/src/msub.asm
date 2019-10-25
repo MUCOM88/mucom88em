@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : msub.asm (Z80アセンブラソース)
 ; 機能 : N88BASIC コマンド拡張
-; 更新日：2019/10/22
+; 更新日：2019/10/25
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmsub.asmwを元に作成した物です。
 ;==========================================================================
@@ -47,21 +47,9 @@ OCTINT:		EQU	ENDADR+2
 SIFTDA2:	EQU	OCTINT+1
 KEYONR:		EQU	SIFTDA2+1
 
-;MEMEND:	EQU	0E3F0H	;0DDF0H	;■変更：曲データ領域の終了判定用アドレス
-MEMEND:		EQU	07FE5H		;■
+;MEMEND:	EQU	0E3F0H	;0DDF0H	;■変更前：曲データ領域の終了判定用アドレス
+MEMEND:		EQU	07FE5H		;■変更後
 ERRORTBL:	EQU	08800H
-	
-	
-; -- 拡張RAM アクセス設定ルーチン --	;■追記
-	
-ERAM00:	EQU	0AFB0H			;■  拡張RAM ライト不可/リード不可
-ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
-ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
-ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
-ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
-ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
-ERAMB2:	EQU	ERAM00+18		;■  拡張RAM カード0/バンク2
-ERAMB3:	EQU	ERAM00+21		;■  拡張RAM カード0/バンク3
 	
 	
 	JP	MWRITE
@@ -1172,3 +1160,38 @@ FCOMS:			; COMMANDs
 ERRORMSG:
 	DB 'ERROR MESSAGE :',0
 	
+	
+; **	拡張RAM アクセス設定	**	;■追記
+
+	ORG	095A0H			;■
+
+	JP	ERAM00			;■
+	JP	ERAM01			;■
+	JP	ERAM10			;■
+	JP	ERAM11			;■
+	JP	ERAMB0			;■
+	JP	ERAMB1			;■
+
+ERAM00:	LD	A,00H			;■  拡張RAM ライト不可/リード不可
+	OUT	(0E2H),A		;■
+	RET				;■
+
+ERAM01:	LD	A,01H			;■  拡張RAM ライト不可/リード可
+	OUT	(0E2H),A		;■
+	RET				;■
+
+ERAM10:	LD	A,10H			;■  拡張RAM ライト可/リード不可
+	OUT	(0E2H),A		;■
+	RET				;■
+
+ERAM11: LD	A,11H			;■  拡張RAM ライト可/リード可
+	OUT	(0E2H),A		;■
+	RET				;■
+
+ERAMB0:	LD	A,0			;■  拡張RAM カード0/バンク0
+	OUT	(0E3H),A		;■
+	RET				;■
+	
+ERAMB1:	LD	A,1			;■  拡張RAM カード0/バンク1
+	OUT	(0E3H),A		;■
+	RET				;■

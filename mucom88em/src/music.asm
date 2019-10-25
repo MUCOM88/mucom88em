@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : music.asm
 ; 機能 : 演奏ルーチン
-; 更新日：2019/10/22
+; 更新日：2019/10/25
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmusic.asmwを元に作成した物です。
 ;==========================================================================
@@ -61,7 +61,7 @@ R_TIME:	EQU	0F304H
 INT3:	EQU	0F308H
 S.ILVL:	EQU	0E6C3H
 	
-;MUSICNUM:	EQU	0C200H			;■変更前：曲データ領域
+;MUSICNUM:	EQU	0C200H			;■変更前：曲データ領域の変更
 MUSICNUM:	EQU	00000H			;■変更後
 OTODAT:		EQU	MUSICNUM+1
 MU_TOP:		EQU	MUSICNUM+5
@@ -163,8 +163,8 @@ FDO3:
 	
 MSTART:
 	DI
-	LD	(X0001+1),A			;■追記
-	CALL	ERAM11				;■  拡張RAM ライト可/リード可
+	LD	(X0001+1),A			;■追記：拡張RAM ライト可/リード可
+	CALL	ERAM11				;■
 X0001:	LD	A,0				;■
 	LD	(MUSICNUM),A
 	CALL	AKYOFF
@@ -2751,11 +2751,11 @@ PW2
 	
 	
 ; **	拡張RAM アクセス設定	;■追記
-				;■
+	
 ERAM00:	XOR	A		;■  拡張RAM ライト不可/リード不可
 	OUT	(0E2H),A	;■
 	RET			;■
-				;■
+	
 ERAM11: LD	A,11H		;■  拡張RAM ライト可/リード可
 	OUT	(0E2H),A	;■
 	RET			;■

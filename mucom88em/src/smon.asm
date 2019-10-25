@@ -2,9 +2,9 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : smon.asm
 ; 機能 : 演奏モニタ
-; 更新日：2019/10/22
+; 更新日：2019/10/25
 ;==========================================================================
-; ※本ソースはMUSICLALF Ver.1.0～1.2共通のsmon.asmを元に作成した物です。
+; ※本ソースはMUSICLALF Ver.1.0～1.2共通のsmon.asmwを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -73,19 +73,20 @@ STOPKC:	EQU	35C2H	;ｽﾄｯﾌﾟｷｰ ﾁｪｯｸ
 BUFCLR:	EQU	35D9H	;ｷｰﾊﾞｯﾌｧｸﾘｱ
 	
 ;DSPMSG:EQU	0AB00H			;■変更前：expandルーチンのアドレス変更
-DSPMSG: EQU	0AA80H			;■変更後
+DSPMSG:EQU	0AAF0H			;■変更後
 KEYCHK:	EQU	DSPMSG+3*5
+	
+FMWORK:	EQU	0C300H			;■追記：ユーザー音色変換用ワーク(新設)
+	
 	
 ; -- 拡張RAM アクセス設定ルーチン --	;■追記
 	
-ERAM00:	EQU	0AFB0H			;■  拡張RAM ライト不可/リード不可
+ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
 ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
 ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
 ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
 ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
 ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
-ERAMB2:	EQU	ERAM00+18		;■  拡張RAM カード0/バンク2
-ERAMB3:	EQU	ERAM00+21		;■  拡張RAM カード0/バンク3
 	
 	
 	JP	PRNWK
@@ -555,7 +556,8 @@ FMP3:
 	
 CONVERT:
 	;IN:HL<=VOICEADR(40BYTE)
-	;OUT:6000Hﾖﾘ 26BYTE
+;	;OUT:6000Hﾖﾘ 26BYTE		;■変更前：ユーザー音色変換ワークを使用に変更
+	;OUT:FMWORK(C301H)ﾖﾘ 26BYTE	;■変更後
 	
 	LD	DE,PARAM
 	LD	B,4
@@ -589,12 +591,14 @@ CV2:
 	CALL	GETPARA
 	
 	LD	HL,OTOWK
-	LD	DE,6000H
+;	LD	DE,6000H		;■変更前：ユーザー音色変換ワークを使用に変更
+	LD	DE,FMWORK		;■変更後
 	LD	BC,32
-	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
+;	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	LDIR
-	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
-	LD	HL,6001H
+;	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+;	LD	HL,6001H		;■変更前：ユーザー音色変換ワークを使用に変更
+	LD	HL,FMWORK+1		;■変更後
 	RET
 	
 GETPARA:

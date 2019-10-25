@@ -2,14 +2,14 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : expand.asm
 ; 機能 : N88BASIC コマンド拡張
-; 更新日：2019/10/22
+; 更新日：2019/10/25
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.0～1.2共通のexpand.asmを元に作成した物です。
 ;==========================================================================
 	
 	
 ;	ORG	0AB00H			;■変更前：アドレス変更
-	ORG	0AA80H			;■変更後
+	ORG	0AAF0H			;■変更後
 	
 COMWK:	EQU	0F320H
 MDATA:		EQU	COMWK	;ｺﾝﾊﾟｲﾙｻﾚﾀ ﾃﾞｰﾀｶﾞｵｶﾚﾙ ｹﾞﾝｻﾞｲﾉ ｱﾄﾞﾚｽ
@@ -107,6 +107,19 @@ JPLINE:	EQU	JCLOCK+2
 	
 SMON:	EQU	0DE00H
 CONVERT:EQU	SMON+3*2
+	
+	
+FMWORK:	EQU	0C300H			;■追記：ユーザー音色変換用ワーク(新設)
+	
+	
+; -- 拡張RAM アクセス設定ルーチン --	;■追記
+	
+ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
+ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
+ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
+ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
+ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
+ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
 	
 	
 	JP	DSPMSG
@@ -534,7 +547,8 @@ STRFAC:
 ; **	FIND VOICE FROM TEXT	**
 	
 	;IN:A<= VOICE NUMBER
-	;STORE:6001Hｶﾗ 25BYTE
+;	;STORE:6001Hｶﾗ 25BYTE		;■変更前：ユーザー音色変換ワークを使用に変更
+	;STORE:FMWORK(C301H)ｶﾗ 25BYTE	;■変更後
 	;NOTFOUND:SCF
 	
 FVTEXT:
@@ -542,7 +556,8 @@ FVTEXT:
 	LD	(FV3+1),A
 	XOR	A
 	LD	(FVFG),A
-	LD	HL,6001H
+;	LD	HL,6001H		;■変更前：ユーザー音色変換ワークを使用に変更
+	LD	HL,FMWORK+1		;■変更後
 	EXX
 	LD	HL,1
 FV1:
@@ -603,12 +618,12 @@ FV5:
 	LD	DE,9
 	ADD	HL,DE
 	CALL	REDATA
-	CALL	EMEM00			;■追記：拡張RAM ライト不可/リード不可
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	LD	A,E
 	EXX
 	LD	(HL),A
 	EXX
-	CALL	EMEM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	AND	A
 	RET
 	
@@ -636,16 +651,17 @@ FV52:
 	LD	(FV63+1),A
 	CALL	FV6
 	
-	CALL	EMEM00			;■追記：拡張RAM ライト不可/リード不可
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	EXX
 	POP	DE
 	LD	(HL),E	;FB
 	INC	HL
 	LD	(HL),D	;ALGO
 	EXX
-	CALL	EMEM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	
-	LD	HL,6001H
+;	LD	HL,6001H		;■変更前：ユーザー音色変換ワークを使用に変更
+	LD	HL,FMWORK+1		;■変更後
 	CALL	CONVERT	;38BYTE->25BYTE
 	AND	A
 	RET
@@ -669,13 +685,13 @@ FV7:
 	PUSH	BC
 	CALL	REDATA
 	INC	HL	;SKIP','
-	CALL	EMEM00			;■追記：拡張RAM ライト不可/リード不可
+	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
 	LD	A,E
 	EXX
 	LD	(HL),A
 	INC	HL
 	EXX
-	CALL	EMEM10			;■追記：拡張RAM ライト可/リード不可
+	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	POP	BC
 	DJNZ	FV7
 FV8:
@@ -930,49 +946,3 @@ SNUMB:
 	DW	0964H,08DDH,085EH,07E6H
 FRQBEF:
 	DW	0
-
-
-; **	拡張RAM アクセス設定	**	;■追記
-
-	ORG	0AFB0H			;■
-
-	JP	EMEM00			;■ 
-	JP	EMEM01			;■
-	JP	EMEM10			;■
-	JP	EMEM11			;■
-	JP	EMEMB0			;■
-	JP	EMEMB1			;■
-	JP	EMEMB2			;■
-	JP	EMEMB3			;■
-
-EMEM00:	LD	A,00H			;■  拡張メモリ ライト不可/リード不可
-	OUT	(0E2H),A		;■
-	RET				;■
-
-EMEM01:	LD	A,01H			;■  拡張メモリ ライト不可/リード可
-	OUT	(0E2H),A		;■
-	RET				;■
-
-EMEM10:	LD	A,10H			;■  拡張メモリ ライト可/リード不可
-	OUT	(0E2H),A		;■
-	RET				;■
-
-EMEM11: LD	A,11H			;■  拡張メモリ ライト可/リード可
-	OUT	(0E2H),A		;■
-	RET				;■
-
-EMEMB0:	LD	A,0			;■  拡張メモリ カード0/バンク0
-	OUT	(0E3H),A		;■
-	RET				;■
-	
-EMEMB1:	LD	A,1			;■  拡張メモリ カード0/バンク1
-	OUT	(0E3H),A		;■
-	RET				;■
-
-EMEMB2:	LD	A,2			;■  拡張メモリ カード0/バンク2
-	OUT	(0E3H),A		;■
-	RET				;■
-
-EMEMB3:	LD	A,3			;■  拡張メモリ カード0/バンク3
-	OUT	(0E3H),A		;■
-	RET				;■
