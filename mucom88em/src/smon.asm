@@ -557,7 +557,7 @@ FMP3:
 CONVERT:
 	;IN:HL<=VOICEADR(40BYTE)
 ;	;OUT:6000Hﾖﾘ 26BYTE		;■変更前：ユーザー音色変換ワークを使用に変更
-	;OUT:FMWORK(C301H)ﾖﾘ 26BYTE	;■変更後
+	;OUT:FMWORK(C300H)ﾖﾘ 26BYTE	;■変更後
 	
 	LD	DE,PARAM
 	LD	B,4
