@@ -47,7 +47,7 @@ OCTINT:		EQU	ENDADR+2
 SIFTDA2:	EQU	OCTINT+1
 KEYONR:		EQU	SIFTDA2+1
 
-;MEMEND:	EQU	0E3F0H	;0DDF0H	;■変更前：曲データ領域の終了判定用アドレス
+;MEMEND:	EQU	0E3F0H	;0DDF0H	;■変更前：曲バイナリデータ領域の終了判定用アドレスの変更
 MEMEND:		EQU	07FE5H		;■変更後
 ERRORTBL:	EQU	08800H
 	
@@ -1161,7 +1161,7 @@ ERRORMSG:
 	DB 'ERROR MESSAGE :',0
 	
 	
-; **	拡張RAM アクセス設定	**	;■追記
+; **	拡張RAM アクセス設定ルーチン	**	;■追記
 
 	ORG	095A0H			;■
 

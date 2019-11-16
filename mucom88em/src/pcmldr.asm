@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : pcmldr.asm (Z80アセンブラソース)
 ; 機能 : サウンドボード2用ADPCMデータ 読込ルーチン
-; 更新日：2019/10/25
+; 更新日：2019/11/17
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.0～1.2共通のpcmldr.asmを元に作成した物です。
 ;==========================================================================
@@ -46,30 +46,33 @@ DRIVE:
 START:
 	LD	A,11H			;■追加：拡張RAM(64KB以上)存在チェック
 	OUT	(0E2H),A		;■
+	LD	HL,07FFFH		;■
+	LD	DE,055AAH		;■
 	LD	B,2			;■
-	LD	A,1			;■
-X0001:	OUT	(0E3H),A		;■
-	LD	A,0FFH			;■
-	LD	(0000H),A		;■
-	LD	A,(0000H)		;■
-	INC	A			;■
-	JR	NZ,X0002		;■
-	INC	A			;■
-	LD	(0000H),A		;■
-	LD	A,(0000H)		;■
+X0001:	LD	A,B			;■
 	DEC	A			;■
+	OUT	(0E3H),A		;■
+	LD	A,D			;■
+	LD	(HL),A			;■
+	LD	A,(HL)			;■
+	XOR	D			;■
+	JR	NZ,X0002		;■
+	LD	A,E			;■
+	LD	(HL),A			;■
+	LD	A,(HL)			;■
+	XOR	E			;■
 	JR	NZ,X0002		;■
 	DJNZ	X0001			;■
+	XOR	A			;■
+	OUT	(0E2H),A		;■
 	JR	X0005			;■
 X0002:	LD	HL,X0004		;■
-	LD	DE,0F3C8H		;■
 	LD	BC,49			;■
+	LD	DE,0F3C8H		;■
 	LDIR				;■
 X0003:	JR	X0003			;■
 X0004:	DB	'ｶｸﾁｮｳRAM(64KBｲｼﾞｮｳ) ｶﾞ ﾄｳｻｲ ｻﾚﾃ ｲﾅｲﾀﾒ ｷﾄﾞｳ ﾃﾞｷﾏｾﾝ'	;■
-X0005:	XOR	A			;■
-	OUT	(0E2H),A		;■
-	
+X0005:					;■
 	CALL	CHK
 	RET	C
 	DI
@@ -724,8 +727,8 @@ FILE5:
 	DB	'"setup"',0
 VN:
 	DW	0
-SDATA:
-	DB	'"PCM.adr",&H6000,&H100',0
+;SDATA:							;■削除：不要
+;	DB	'"PCM.adr",&H6000,&H100',0		;■
 MSG001:
 	DB	'PCM LOADING SKIP!!',0
 MSG002:

@@ -2,14 +2,14 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : expand.asm (Z80アセンブラソース)
 ; 機能 : N88BASIC コマンド拡張
-; 更新日：2019/10/25
+; 更新日：2019/11/17
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.0～1.2共通のexpand.asmを元に作成した物です。
 ;==========================================================================
 	
 	
-;	ORG	0AB00H			;■変更前：アドレス変更
-	ORG	0AAF0H			;■変更後
+;	ORG	0AB00H			;■変更前：本ルーチンのオフセット変更
+	ORG	0B800H			;■変更後
 	
 COMWK:	EQU	0F320H
 MDATA:		EQU	COMWK	;ｺﾝﾊﾟｲﾙｻﾚﾀ ﾃﾞｰﾀｶﾞｵｶﾚﾙ ｹﾞﾝｻﾞｲﾉ ｱﾄﾞﾚｽ
@@ -72,12 +72,12 @@ ERRORML:	EQU	ERRORDC+3
 MCMP:		EQU	ERRORML+3
 ERRORVO:	EQU	MCMP+3
 	
-MUSIC:	EQU	0B000H
-DRIVE:	EQU	MUSIC+3*5
-WKGET:	EQU	MUSIC+3*8
+;MUSIC:	EQU	0B000H				;■削除：不要(元々の情報も古い)
+;DRIVE:	EQU	MUSIC+3*5			;■
+;WKGET:	EQU	MUSIC+3*8			;■
 	
-MUC88:	EQU	09600H
-MUSICSTART:	EQU	MUC88+3*3
+;MUC88:	EQU	09600H				;■削除：不要
+;MUSICSTART:	EQU	MUC88+3*3		;■
 	
 CURSOR:	EQU	0EF86H
 	
@@ -109,7 +109,7 @@ SMON:	EQU	0DE00H
 CONVERT:EQU	SMON+3*2
 	
 	
-FMWORK:	EQU	0C300H			;■追記：ユーザー音色変換用ワーク(新設)
+FMWORK:	EQU	0BF00H			;■追記：ユーザー音色変換用ワーク(新設)
 	
 	
 ; -- 拡張RAM アクセス設定ルーチン --	;■追記
@@ -548,7 +548,7 @@ STRFAC:
 	
 	;IN:A<= VOICE NUMBER
 ;	;STORE:6001Hｶﾗ 25BYTE		;■変更前：ユーザー音色変換ワークを使用に変更
-	;STORE:FMWORK+1(C301H)ｶﾗ 25BYTE	;■変更後
+	;STORE:FMWORK+1(BF01H)ｶﾗ 25BYTE	;■変更後
 	;NOTFOUND:SCF
 	
 FVTEXT:

@@ -2,9 +2,9 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : kbd.asm (Z80アセンブラソース)
 ; 機能 : FM音源音色エディタ
-; 更新日：2019/10/22
+; 更新日：2019/11/17
 ;==========================================================================
-; ※本ソースはMUSICLALF Ver.1.0～1.2共通のkbd.asmと同等です。
+; ※本ソースはMUSICLALF Ver.1.0～1.2共通のkbd.asmを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -13,7 +13,8 @@
 VOICELOC:	EQU 	0*256+40
 CURSOR:	EQU	0EF86H
 CUR_ON:	EQU	04290H
-MSTART:	EQU	0B000H
+;MSTART:EQU	0B000H					;■変更前：演奏ルーチンのオフセット変更
+MSTART:	EQU	0C000H					;■変更後
 MST:	EQU	MSTART+3*6
 AKYOFF:	EQU	MST+3*2
 PSGOUT:	EQU	MST+3*7
@@ -57,6 +58,16 @@ GETPARA:EQU	SMON+3*4
 OPEX:	EQU	SMON+3*5
 OTOWK:	EQU	8B00H+60H+60H	;25BYTEﾃﾞｰﾀｶﾞ ﾊｲﾙﾄｺﾛ
 PARAM:	EQU	OTOWK+32	;38BYTEﾃﾞｰﾀｶﾞﾊｲﾙﾄｺﾛ
+	
+	
+; -- 拡張RAM アクセス設定ルーチン --	;■追記
+	
+ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
+ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
+ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
+ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
+ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
+ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
 	
 	
 ; ***   INITIARIZE   ***
@@ -2630,3 +2641,28 @@ EDITFG:
 	DB	0
 INPCO:
 	DB	0
+
+
+;***********************************************************************	;■追記
+; MainRAMに一時的にbloadした下記バイナリを拡張RAMに移す初期設定ルーチン		;■
+; ・voice.dat(FMプリセット音色データ)						;■
+; ・kbd(FM音色エディタ)								;■
+; 起動時にmlf88(basicローダ)から"A=&HAD00:CALL A"で実行される			;■
+;***********************************************************************	;■
+
+	ORG	0AD00H		;■
+	
+	CALL	ERAMB1		;■  拡張RAM カード0/バンク1
+	CALL	ERAM10		;■  拡張RAM ライト可/リード不可
+	LD	DE,06000H	;■  FMプリセット音色データの移動 メインRAM C000H→拡張RAM カード0/バンク1 6000H
+	LD	HL,0C000H	;■
+	LD	BC,02000H	;■
+	LDIR			;■
+	LD	DE,04800H	;■  FM音色エディタの移動 メインRAM 9A00H→拡張RAM カード0/バンク1 4800H
+	LD	HL,09A00H	;■
+	LD	BC,01300H	;■
+	LDIR			;■
+	CALL	ERAM00		;■  拡張RAM ライト不可/リード不可
+	CALL	ERAMB0		;■  拡張RAM カード0/バンク0
+	RET
+	

@@ -2,9 +2,9 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : time.asm (Z80アセンブラソース)
 ; 機能 : テキスト終了チェック＆タイム表示
-; 更新日：2019/10/22
+; 更新日：2019/11/17
 ;==========================================================================
-; ※本ソースはMUSICLALF Ver.1.0～1.2共通のtime.asmと同等です。
+; ※本ソースはMUSICLALF Ver.1.0～1.2共通のtime.asmを元に作成した物です。
 ;==========================================================================
 	
 	
@@ -12,10 +12,11 @@
 	
 	ORG	0E400H
 	
-NOTSB2:	EQU	0FFF8H
-TXTEND:	EQU	0EB18H
+NOTSB2:EQU	0FFF8H
+TXTEND:EQU	0EB18H
 S.ILVL:	EQU	0E6C3H
-TIME:	EQU	0B000H+3*17
+;TIME:	EQU	0B000H+3*17		;■変更前：演奏ルーチンのオフセット変更に伴う修正
+TIME:	EQU	0C000H+3*17		;■変更後
 	
 	
 ; --	BASIC ﾉ TEXTENDﾁｪｯｸ ｦ vrtcﾜﾘｺﾐ ﾆ ｾｯﾃｲ	--

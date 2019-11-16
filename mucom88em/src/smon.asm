@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : smon.asm (Z80アセンブラソース)
 ; 機能 : 演奏モニタ
-; 更新日：2019/10/25
+; 更新日：2019/11/17
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.0～1.2共通のsmon.asmを元に作成した物です。
 ;==========================================================================
@@ -58,13 +58,14 @@ JPLINE:	EQU	JCLOCK+2
 	
 ;-<
 	
-MSTART:	EQU	0B000H
+;MSTART:EQU	0B000H			;■変更前：演奏ルーチンのアドレス変更
+MSTART:	EQU	0C000H			;■変更後
 MSTOP:	EQU	MSTART+3
 MUSIC:	EQU	MSTART+3*6
 DRIVE:	EQU	MUSIC+3*5
 WKGET:	EQU	MUSIC+3*8
 	
-MUC88:	EQU	09600H
+;MUC88:	EQU	09600H			;■削除：不要
 	
 	
 CLS1:	EQU	5F0EH
@@ -73,10 +74,10 @@ STOPKC:	EQU	35C2H	;ｽﾄｯﾌﾟｷｰ ﾁｪｯｸ
 BUFCLR:	EQU	35D9H	;ｷｰﾊﾞｯﾌｧｸﾘｱ
 	
 ;DSPMSG:EQU	0AB00H			;■変更前：expandルーチンのアドレス変更
-DSPMSG:EQU	0AAF0H			;■変更後
+DSPMSG:EQU	0B800H			;■変更後
 KEYCHK:	EQU	DSPMSG+3*5
 	
-FMWORK:	EQU	0C300H			;■追記：ユーザー音色変換用ワーク(新設)
+FMWORK:	EQU	0BF00H			;■追記：ユーザー音色変換用ワーク(新設)
 	
 	
 ; -- 拡張RAM アクセス設定ルーチン --	;■追記
