@@ -4,9 +4,11 @@
 ; 機能 : 演奏ルーチン(組込み用)
 ; 更新日 : 2019/11/07
 ;==========================================================================
-; ※本ソースはMUSICLALF Ver.1.0のmusic2から差分修正にて作成した物です。
+; ※本ソースはMUSICLALF Ver.1.2対応版のmusic2から差分修正にて作成した物です。
+; ※本ソースは曲バイナリデータの設置場所をオリジナルのMainRAM($C200～)から
+;   拡張RAM カード0/バンク0($0000～)に変更し、最大32KBの曲バイナリデータに
+;   対応させたサンプルプログラムです。
 ;==========================================================================
-	
 	
 	
 VRTC:	EQU	0F302H
@@ -15,7 +17,8 @@ INT3:	EQU	0F308H
 S.ILVL:	EQU	0E6C3H
 MAXCH:		EQU	11
 	
-MUSNUM:	EQU	0C200H	; ﾃﾞｰﾀ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ
+;MUSNUM:EQU	0C200H	; ﾃﾞｰﾀ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ	;■変更前：曲バイナリデータの場所をMainRAM($C200～)から拡張RAM カード0/バンク0($0000～)に変更
+MUSNUM:	EQU	00000H	; ﾃﾞｰﾀ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ	;■変更後
 PCMADR:	EQU	0E300H	; ADPCMﾃﾞｰﾀﾃｰﾌﾞﾙ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ
 EFCTBL:	EQU	0AA00H	; ｺｳｶｵﾝ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ
 	
@@ -109,6 +112,8 @@ MSTART:
 	
 	DI
 	LD	(MUSNUM),A
+	CALL	ERAMB0		;■追加：拡張RAM カード0/バンク0
+	CALL	ERAM11		;■追加：拡張RAM ライト可/リード可
 	CALL	CHK
 	CALL	AKYOFF
 	CALL	SSGOFF
@@ -119,6 +124,7 @@ START:
 	CALL	ENBL
 	CALL	TO_NML
 	POP	HL
+	CALL	ERAM00		;■追加：拡張RAM ライト不可/リードF不可
 	EI
 	RET
 MSTOP:
@@ -322,6 +328,7 @@ PL_SND:
 	PUSH	BC
 	PUSH	IX
 	PUSH	IY
+	CALL	ERAM11		;■追加：拡張RAM ライト可/リード可
 	
 PLSET1:
  	LD	E,38H		;  TIMER-OFF DATA
@@ -339,6 +346,7 @@ PLSND3:
 	LD	A,5
 	OUT	(0E4H),A	;CUT INT 5-7
 	
+	CALL	ERAM00		;■追加：拡張RAM ライト不可/リードF不可
 	POP	IY
 	POP	IX
 	POP	BC
@@ -2619,6 +2627,21 @@ STTE:
 	RET
 	
 	
+; **	拡張RAM アクセス設定	;■追記
+	
+ERAM00:	XOR	A		;■  拡張RAM ライト不可/リード不可
+	OUT	(0E2H),A	;■
+	RET			;■
+	
+ERAM11: LD	A,11H		;■  拡張RAM ライト可/リード可
+	OUT	(0E2H),A	;■
+	RET			;■
+	
+ERAMB0:	XOR	A		;■  拡張RAM カード0/バンク0
+	OUT	(0E3H),A	;■
+	RET			;■
+	
+	
 ; **	MUSIC WORK	**
 	
 NOTSB2:	DB	0	;(INFADR)
@@ -2942,8 +2965,7 @@ OP_SEL:
 CHNUM:	DB	0
 C2NUM:	DB	0
 TB_TOP:	DW	0
-;TIMER_B:DB	0				;■修正前
-TIMER_B:DB	100				;■修正後
+TIMER_B:DB	100
 PRISSG:	DB	0
 	
 ; ***	ADPCM WORK	***

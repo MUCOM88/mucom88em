@@ -1,12 +1,14 @@
 ;==========================================================================
-; MUSICLALF Ver.1.2(MUCOM88 Ver.1.7)対応
+; MUSICLALF Ver.1.0(MUCOM88 Ver.1.5)対応
 ; ファイル名 : music2.asm (Z80アセンブラソース)
 ; 機能 : 演奏ルーチン(組込み用)
-; 更新日 : 2019/11/07
+; 更新日：2019/11/07
 ;==========================================================================
-; ※本ソースはMUSICLALF Ver.1.0のmusic2から差分修正にて作成した物です。
+; ※本ソースはMUSICLALF Ver.1.0のmusic2.asmを元に作成した物です。
+; ※本ソースは曲バイナリデータの設置場所をオリジナルのMainRAM($C200～)から
+;   拡張RAM カード0/バンク0($0000～)に変更し、最大32KBの曲バイナリデータに
+;   対応させたサンプルプログラムです。
 ;==========================================================================
-	
 	
 	
 VRTC:	EQU	0F302H
@@ -15,7 +17,8 @@ INT3:	EQU	0F308H
 S.ILVL:	EQU	0E6C3H
 MAXCH:		EQU	11
 	
-MUSNUM:	EQU	0C200H	; ﾃﾞｰﾀ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ
+;MUSNUM:EQU	0C200H	; ﾃﾞｰﾀ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ	;■変更前：曲バイナリデータの場所をMainRAM($C200～)から拡張RAM カード0/バンク0($0000～)に変更
+MUSNUM:	EQU	00000H	; ﾃﾞｰﾀ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ	;■変更後
 PCMADR:	EQU	0E300H	; ADPCMﾃﾞｰﾀﾃｰﾌﾞﾙ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ
 EFCTBL:	EQU	0AA00H	; ｺｳｶｵﾝ ﾉ ｽﾀｰﾄ ｱﾄﾞﾚｽ
 	
@@ -109,6 +112,8 @@ MSTART:
 	
 	DI
 	LD	(MUSNUM),A
+	CALL	ERAMB0		;■追加：拡張RAM カード0/バンク0
+	CALL	ERAM11		;■追加：拡張RAM ライト可/リード可
 	CALL	CHK
 	CALL	AKYOFF
 	CALL	SSGOFF
@@ -119,6 +124,7 @@ START:
 	CALL	ENBL
 	CALL	TO_NML
 	POP	HL
+	CALL	ERAM00		;■追加：拡張RAM ライト不可/リードF不可
 	EI
 	RET
 MSTOP:
@@ -245,7 +251,7 @@ INITF2:
 	LD	DE,PREGBF
 	LD	BC,9
 	LDIR			; PSGﾊﾞｯﾌｧ ｲﾆｼｬﾗｲｽﾞ
-	
+
 	POP	HL
 	POP	AF
 	RET
@@ -322,6 +328,7 @@ PL_SND:
 	PUSH	BC
 	PUSH	IX
 	PUSH	IY
+	CALL	ERAM11		;■追加：拡張RAM ライト可/リード可
 	
 PLSET1:
  	LD	E,38H		;  TIMER-OFF DATA
@@ -339,6 +346,7 @@ PLSND3:
 	LD	A,5
 	OUT	(0E4H),A	;CUT INT 5-7
 	
+	CALL	ERAM00		;■追加：拡張RAM ライト不可/リードF不可
 	POP	IY
 	POP	IX
 	POP	BC
@@ -821,10 +829,8 @@ FMCOM:
 	
 FMCOM2:
 	JP	PVMCHG		;FFF0-PCM VOLUME MODE
-;	JP	HRDENV		;FFF1-HARD ENVE SET 's'		;■修正前
-	JP	NTMEAN						;■修正後
-;	JP	ENVPOD		;FFF2-HARD ENVE PERIOD		;■修正前
-	JP	NTMEAN						;■修正後
+	JP	HRDENV		;FFF1-HARD ENVE SET 's'
+	JP	ENVPOD		;FFF2-HARD ENVE PERIOD
 	JP	REVERVE		;FFF3-ﾘﾊﾞｰﾌﾞ
 	JP	REVMOD		;FFF4-ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
 	JP	REVSW		;FFF5-ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
@@ -1887,21 +1893,21 @@ SSSUB4:
 	JR	SSSUB9
 	
 SSSUBF:			; KEYON ｻﾚﾀﾄｷ ﾉ ｼｮﾘ
-;	BIT	7,(IX+33)				;■削除
-;	JR	Z,SSSUBG	; NOT HARD ENV.		;■
+	BIT	7,(IX+33)
+	JR	Z,SSSUBG	; NOT HARD ENV.
 	
 ; ---	HARD ENV. KEY ON	---
 	
-;	LD	E,16					;■
-;	LD	D,(IX+7)				;■
-;	CALL	PSGOUT		; HARD ENV.KEYON	;■
+	LD	E,16
+	LD	D,(IX+7)
+	CALL	PSGOUT		; HARD ENV.KEYON
 	
-;	LD	A,(IX+33)				;■
-;	AND	00001111B				;■
-;	LD	E,A					;■
-;	LD	D,0DH					;■
-;	CALL	PSGOUT					;■
-;	JR	SSSUBH					;■
+	LD	A,(IX+33)
+	AND	00001111B
+	LD	E,A
+	LD	D,0DH
+	CALL	PSGOUT
+	JR	SSSUBH
 	
 ; ---	SOFT ENV. KEYON		---
 	
@@ -1931,8 +1937,8 @@ SSSUB9:
 ;
 	
 SSSUB3:
-;	BIT	7,(IX+33)					;■削除
-;	JR	NZ,SETPT	; IF HARD ENVE THEN SETPT	;■
+	BIT	7,(IX+33)
+	JR	NZ,SETPT	; IF HARD ENVE THEN SETPT
 	
 	LD	E,A
 	LD	D,(IX+7)
@@ -1951,15 +1957,15 @@ SSSUBA:
 	
 ; --	HARD ENV. KEY OFF	--
 	
-;	BIT	7,(IX+33)				;■削除
-;	JR	Z,SSUBAB	; NOT HARD ENV.		;■
-;	LD	E,0					;■
-;	LD	D,(IX+7)				;■
-;	CALL	PSGOUT		; HARD ENV.KEYOFF	;■
+	BIT	7,(IX+33)
+	JR	Z,SSUBAB	; NOT HARD ENV.
+	LD	E,0
+	LD	D,(IX+7)
+	CALL	PSGOUT		; HARD ENV.KEYOFF
 	
 ; --	SOFT ENV. KEY OFF	--
 	
-;SSUBAB:						;■削除
+SSUBAB:
 	BIT	5,(IX+33)
 	JR	Z,SSUBAC
 	RES	6,(IX+31)
@@ -2014,29 +2020,29 @@ PSGCOM:
 	
 ; **	HARD ENVE SET	**
 	
-;HRDENV:						;■削除
-;	LD	E,(HL)					;■
-;	INC	HL					;■
-;	LD	D,0DH					;■
-;	CALL	PSGOUT					;■
-;	LD	A,E					;■
-;	OR	10000000B	; SET H.E FLAG		;■
-;	LD	(IX+33),A	; H.E MODE		;■
-;	LD	(IX+6),16				;■
-;	RET						;■
+HRDENV:
+	LD	E,(HL)
+	INC	HL
+	LD	D,0DH
+	CALL	PSGOUT
+	LD	A,E
+	OR	10000000B	; SET H.E FLAG
+	LD	(IX+33),A	; H.E MODE
+	LD	(IX+6),16
+	RET
 	
 ; **	HARD ENVE PERIOD	**
 	
-;ENVPOD:						;■削除
-;	LD	E,(HL)					;■
-;	INC	HL					;■
-;	LD	D,0BH					;■
-;	CALL	PSGOUT					;■
-;	LD	E,(HL)					;■
-;	INC	HL					;■
-;	INC	D					;■
-;	CALL	PSGOUT					;■
-;	RET						;■
+ENVPOD:
+	LD	E,(HL)
+	INC	HL
+	LD	D,0BH
+	CALL	PSGOUT
+	LD	E,(HL)
+	INC	HL
+	INC	D
+	CALL	PSGOUT
+	RET
 	
 ; **   WRITE REG   **
 	
@@ -2136,8 +2142,8 @@ VOLUPS:
 	LD	D,(HL)
 	INC	HL
 	
-;	BIT	7,(IX+33)				;■削除
-;	RET	NZ					;■
+	BIT	7,(IX+33)
+	RET	NZ
 	
 	LD	A,(IX+6)
 	LD	E,A
@@ -2156,7 +2162,7 @@ VOLUPS:
 ; **	PSG VOLUME	**
 	
 PSGVOL:
-;	RES	7,(IX+33)	; RES HARD ENV FLAG	;■削除
+	RES	7,(IX+33)	; RES HARD ENV FLAG
 	
 	LD	A,(IX+6)
 	AND	11110000B
@@ -2619,6 +2625,21 @@ STTE:
 	RET
 	
 	
+; **	拡張RAM アクセス設定	;■追記
+	
+ERAM00:	XOR	A		;■  拡張RAM ライト不可/リード不可
+	OUT	(0E2H),A	;■
+	RET			;■
+	
+ERAM11: LD	A,11H		;■  拡張RAM ライト可/リード可
+	OUT	(0E2H),A	;■
+	RET			;■
+	
+ERAMB0:	XOR	A		;■  拡張RAM カード0/バンク0
+	OUT	(0E3H),A	;■
+	RET			;■
+	
+	
 ; **	MUSIC WORK	**
 	
 NOTSB2:	DB	0	;(INFADR)
@@ -2942,8 +2963,7 @@ OP_SEL:
 CHNUM:	DB	0
 C2NUM:	DB	0
 TB_TOP:	DW	0
-;TIMER_B:DB	0				;■修正前
-TIMER_B:DB	100				;■修正後
+TIMER_B:DB	0
 PRISSG:	DB	0
 	
 ; ***	ADPCM WORK	***
