@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : muc88.asm (Z80アセンブラソース)
 ; 機能 : コマンド処理・コンパイラ
-; 更新日：2020/01/24
+; 更新日：2019/11/17
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmuc88.asmを元に作成した物です。
 ;==========================================================================
@@ -164,6 +164,14 @@ CINT:
 CI2:
 	LD	(0EEA7H),A
 	LD	(0EEA8H),HL
+;	CALL	ERAMB1			;■追記：拡張RAM カード0/バンク1
+;	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
+;	LD	DE,06000H		;■追記：FM音色データの移動 メインRAM C200H→拡張RAM カード0/バンク1 6000H
+;	LD	HL,0C000H		;■
+;	LD	BC,02000H		;■
+;	LDIR				;■
+;	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
+;	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	RET
 COMPIL:
 	PUSH	HL
@@ -285,7 +293,7 @@ KBDSUB:
 	LD	BC,02000H		;■
 	LDIR				;■
 	CALL	ERAM01			;■追記：拡張RAM ライト不可/リード可
-	LD	HL,06000H		;■追記：拡張RAM(カード0/バンク1)の6000H～7FFFHをメインRAMの6000H～に複製
+	LD	HL,06000H		;■追記：拡張RAM(カード0/バンク1)の6000H～7FFFFHをメインRAMの6000H～に複製
 	LD	DE,06000H		;■
 	LD	BC,02000H		;■
 	LDIR				;■
@@ -348,14 +356,12 @@ DEBFCH:
 	RET
 CMP1:
 	DI
-	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	LD	HL,VPCO
 	INC	(HL)
 	JR	CMP2
 COMPI1:
 	DI
-	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	CALL	ERAM10			;■追記：拡張RAM ライト可/リード不可
 	XOR	A
 	LD	(VPCO),A
@@ -3490,7 +3496,7 @@ LNKTXT:	DB	3AH,8FH,0E9H,20H,20H	; 5 ｺ
 	
 MACFG:	DB	0	;0>< AS MACRO PRC
 ;MESS:	DB	'[  MUSICLALF Ver:1.2 ] Address'	;■変更前：メイン画面のバージョン表示
-MESS:	DB	'[ MUCOM88em Ver:1.00 ] Address'	;■変更後
+MESS:	DB	'[ MUCOM88em 20191117 ] Address'	;■変更後
 	DB	':    -    (    )         [ 00:00 ] MODE:'
 MESNML:	DB	'NORMAL  '
 	DB	'LINC    '

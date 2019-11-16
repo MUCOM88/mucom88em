@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : music.asm (Z80アセンブラソース)
 ; 機能 : 演奏ルーチン
-; 更新日：2020/01/24
+; 更新日：2019/11/17
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmusic.asmを元に作成した物です。
 ;==========================================================================
@@ -61,28 +61,17 @@ R_TIME:EQU	0F304H
 INT3:	EQU	0F308H
 S.ILVL:	EQU	0E6C3H
 	
-;MUSICNUM:	EQU	0C200H		;■変更前：曲バイナリデータのオフセット変更
-MUSICNUM:	EQU	00000H		;■変更後
+;MUSICNUM:	EQU	0C200H			;■変更前：曲バイナリデータのオフセット変更
+MUSICNUM:	EQU	00000H			;■変更後
 OTODAT:		EQU	MUSICNUM+1
 MU_TOP:		EQU	MUSICNUM+5
 MAXCH:		EQU	11
 PCMADR:	EQU	0E300H
 	
-;MUC88:	EQU	09600H			;■削除：不要
+;MUC88:	EQU	09600H				;■削除：不要
 	
-	
-; -- 拡張RAM アクセス設定ルーチン --	;■追記
-	
-ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
-ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
-ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
-ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
-ERAMB0:	EQU	ERAM00+12		;■  拡張RAM カード0/バンク0
-ERAMB1:	EQU	ERAM00+15		;■  拡張RAM カード0/バンク1
-
-
-;	ORG 0B000H			;■変更前：本ルーチンのオフセット変更
-	ORG 0C000H			;■変更後
+;	ORG 0B000H				;■変更前：本ルーチンのオフセット変更
+	ORG 0C000H				;■変更後
 	
 	JP	MSTART
 	JP	MSTOP
@@ -175,25 +164,23 @@ FDO3:
 	
 MSTART:
 	DI
-	LD	(X0001+1),A		;■追記
-	CALL	ERAMB0			;■  拡張RAM カード0/バンク0
-	CALL	ERAM11			;■  拡張RAM ライト可/リード可
-X0001:	LD	A,0			;■
+	LD	(X0001+1),A			;■追記：拡張RAM ライト可/リード可
+	CALL	ERAM11				;■
+X0001:	LD	A,0				;■
 	LD	(MUSICNUM),A
 	CALL	AKYOFF
 	CALL	SSGOFF
 	CALL	WORKINIT
 START:
 	DI
-	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
-	CALL	ERAM11			;■追記：拡張RAM ライト可/リード可
+	CALL	ERAM11				;■追記：拡張RAM ライト可/リード可
 	PUSH	HL
 	CALL	CHK
 	CALL	INT57
 	CALL	ENBL
 	CALL	TO_NML
 	POP	HL
-	CALL	ERAM00			;■追記：拡張RAM ライト不可/リード不可
+	CALL	ERAM00				;■追記：拡張RAM ライト不可/リード不可
 	EI
 	RET
 MSTOP:
@@ -328,7 +315,6 @@ PL_SND:
 	PUSH	BC
 	PUSH	IX
 	PUSH	IY
-	CALL	ERAMB0			;■追記：拡張RAM カード0/バンク0
 	CALL	ERAM11			;■追記：拡張RAM ライト可/リード可
 PLSET1:
  	LD	E,38H		;  TIMER-OFF DATA
@@ -2632,7 +2618,7 @@ STT1:
 	
 STTE:
 	RET
-	
+
 	
 ;■移動：本位置にあったワークエリア(MUSIC WORK)を本ソースのラストに移動
 
@@ -2763,6 +2749,18 @@ PW2
 	LD	H,A
 	LD	(HL),E
 	RET
+	
+	
+; **	拡張RAM アクセス設定	;■追記
+	
+ERAM00:	XOR	A		;■  拡張RAM ライト不可/リード不可
+	OUT	(0E2H),A	;■
+	RET			;■
+	
+ERAM11: LD	A,11H		;■  拡張RAM ライト可/リード可
+	OUT	(0E2H),A	;■
+	RET			;■
+	
 	
 ; **	MUSIC WORK	**
 	
