@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : music.asm (Z80アセンブラソース)
 ; 機能 : 演奏ルーチン
-; 更新日：2019/10/25
+; 更新日：2019/11/17
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmusic.asmを元に作成した物です。
 ;==========================================================================
@@ -57,20 +57,21 @@ CULTIM:		EQU	CULSEC+3
 GETTIME:	EQU	CULTIM+3
 	
 VRTC:	EQU	0F302H
-R_TIME:	EQU	0F304H
+R_TIME:EQU	0F304H
 INT3:	EQU	0F308H
 S.ILVL:	EQU	0E6C3H
 	
-;MUSICNUM:	EQU	0C200H			;■変更前：曲データ領域の変更
+;MUSICNUM:	EQU	0C200H			;■変更前：曲バイナリデータのオフセット変更
 MUSICNUM:	EQU	00000H			;■変更後
 OTODAT:		EQU	MUSICNUM+1
 MU_TOP:		EQU	MUSICNUM+5
 MAXCH:		EQU	11
 PCMADR:	EQU	0E300H
 	
-MUC88:	EQU	09600H
+;MUC88:	EQU	09600H				;■削除：不要
 	
-	ORG 0B000H
+;	ORG 0B000H				;■変更前：本ルーチンのオフセット変更
+	ORG 0C000H				;■変更後
 	
 	JP	MSTART
 	JP	MSTOP
@@ -2763,7 +2764,7 @@ ERAM11: LD	A,11H		;■  拡張RAM ライト可/リード可
 	
 ; **	MUSIC WORK	**
 	
-	ORG	0BFC0H		;■追記：ワークエリアのアドレス固定
+	ORG	0CFC0H		;■追記：ワークエリアのアドレス固定
 	
 NOTSB2:	DB	0
 PVMODE:	DB	0	;PCMvolMODE
