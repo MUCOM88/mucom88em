@@ -27,7 +27,7 @@ MUCOM88の最終バージョン(Ver.1.7)をPC-8801シリーズ用の拡張RAMに
 ・kumatan様<br>
 
 ・M88<br>
-・ePC-8801/mkII/MA<br>
+・ePC-8801MA<br>
 ・pasmo<br>
 ・D88SARVER<br>
 ・さくらエディタ<br>
