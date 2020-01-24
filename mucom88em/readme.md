@@ -15,7 +15,7 @@ MUCOM88の最終バージョン(Ver.1.7)をPC-8801シリーズ用の拡張RAMに
 
   ※別途、DOSとしてALPHA-DOS Ver.2.99(拡張RAM対応版)が必要です。
 
-### フォルダの構成
+### フォルダの説明
 
 - sdk_package …… MUCOM88emSDK。ALPHA-DOSを含まない公開用パッケージ。
 - src …… ソースファイル。拡張子asmはZ80アセンブラソース、basはbasicソース。
