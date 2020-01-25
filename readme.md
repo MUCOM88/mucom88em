@@ -6,6 +6,11 @@ MUCOM88em(MUCOM88 Etended Memory Edition)は、MUCOM88の最終バージョン(V
 
 ここでは主にMUCOM88emの開発、及びMUCOM88の各種改造を行っています。
 
+### フォルダの説明
+
+- accessories …… MUCOM88アクセサリ。MUCOM88の各種改造ソースです。
+- mucom88em …… MUCOM88emの開発ソース・各種コンポーネント類です。
+
 ### 関連リンク
 
 - [MUCOM88em Wiki](https://github.com/MUCOM88/mucom88/wiki)<br>
@@ -20,7 +25,4 @@ MUCOM88em(MUCOM88 Etended Memory Edition)は、MUCOM88の最終バージョン(V
 - [OPEN MUCOM88 Wiki (ONION software/おにたま様)](https://github.com/onitama/mucom88/wiki)<br>
    …… OPEN MUCOM88 公式Wikiサイト。MUCOM88の各種情報はこちらのサイトをご確認下さい。
 
-### フォルダの説明
 
-- accessories …… MUCOM88アクセサリ。MUCOM88の各種改造ソースです。
-- mucom88em …… MUCOM88emの開発ソース・各種コンポーネント類です。
