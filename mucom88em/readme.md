@@ -7,17 +7,17 @@ MUCOM88em(MUCOM88 Etended Memory Editionの略称)は、MUCOM88の最終バー�
 
 ### 関連リンク
 
-- [MUCOM88em Wiki](https://github.com/MUCOM88/mucom88/wiki)(<br>
-   …… MUCOM88em関連の詳細情報サイト
+- [MUCOM88em Wiki](https://github.com/MUCOM88/mucom88/wiki)<br>
+   …… MUCOM88em関連のWikiサイト。MUCOM88emの詳細はこちらのサイトをご確認下さい。
 
 - [MUCOM88em/SPLIT-i/ALPHA-DOS product page (ONION software/おにたま様)](https://onitama.tv/alphados/)<br>
-   …… MUCOM88emの配布パッケージの1次配布サイト
+   …… MUCOM88emの配布パッケージの1次配布サイト。
 
 - [OPEN MUCOM PROJECT (株式会社エインシャント様)](https://www.ancient.co.jp/~mucom88)<br>
-   …… MUCOM88公式サイト
+   …… MUCOM88公式サイト。オリジナルのMUCOM88はこちらのサイトで配布されています。
 
 - [OPEN MUCOM88 Wiki (ONION software/おにたま様)](https://github.com/onitama/mucom88/wiki)<br>
-   …… OPEN MUCOM88 公式Wikiサイト
+   …… OPEN MUCOM88 公式Wikiサイト。MUCOM88の各種情報はこちらのサイトをご確認下さい。
 
 ### フォルダの説明
 
