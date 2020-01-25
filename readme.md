@@ -1,63 +1,26 @@
-# MUCOM88em
+# MUCOM88とMUCOM88emについて
 
-MUCOM88の拡張RAM対応改造版です。
+MUOM88は、1987年より古代祐三氏によって開発・発表されたNEC PC-8801プラットフォーム用のMML形式による音楽作成ツール、及び再生用のプログラム(サウンドドライバ)環境です。<br>
 
-### 概要
+MUCOM88em(MUCOM88 Etended Memory Editionの略称)は、MUCOM88の最終バージョン(Ver.1.7)をPC-8801シリーズ用の拡張RAMに対応させる事により、従来よりも大きな楽曲の作成と演奏を可能にした改造版です。<br>
 
-MUCOM88の最終バージョン(Ver.1.7)をPC-8801シリーズ用の拡張RAMに対応させる事により、従来よりも大きな楽曲の作成と演奏を可能にした改造バージョンです。<br>
+ここでは主にMUCOM88emの開発、及びMUCOM88の各種改造を行っています。
 
-### 動作環境
+### 関連リンク
 
-- NEC PC-8801mkⅡSR以降(サウンドボードⅡ対応)+64KB以上の拡張RAM<br>
-  (PC-8801mkⅡMR/MA/MA2/MC/PC-88VA/VA2/VA3/PC-98DO/DO+は標準で上記要件を満たす拡張RAMを搭載しています。)<br>
-  (PC-8801MC/FE2の8MHzHモードでは、YM2608のリズム音源が正常に演奏されない場合がありますので、8MHzSモードでご使用ください)<br>
-- PC-8801mkⅡSR以降対応の各種エミュレータ<br>
+- [MUCOM88em Wiki](https://github.com/MUCOM88/mucom88/wiki)<br>
+   …… MUCOM88em関連のWikiサイト。MUCOM88emの詳細はこちらのサイトをご確認下さい。
 
-  ※別途、DOSとしてALPHA-DOS Ver.2.99(拡張RAM対応版)が必要です。
+- [MUCOM88em/SPLIT-i/ALPHA-DOS product page (ONION software/おにたま様)](https://onitama.tv/alphados/)<br>
+   …… MUCOM88emの配布パッケージの1次配布サイト。
+
+- [OPEN MUCOM PROJECT (株式会社エインシャント様)](https://www.ancient.co.jp/~mucom88)<br>
+   …… MUCOM88公式サイト。オリジナルのMUCOM88はこちらのサイトで配布されています。
+
+- [OPEN MUCOM88 Wiki (ONION software/おにたま様)](https://github.com/onitama/mucom88/wiki)<br>
+   …… OPEN MUCOM88 公式Wikiサイト。MUCOM88の各種情報はこちらのサイトをご確認下さい。
 
 ### フォルダの説明
 
-- sdk_package …… MUCOM88emSDK。ALPHA-DOSを含まない公開用パッケージ。
-- src …… ソースファイル。拡張子asmはZ80アセンブラソース、basはbasicソース。
-
-### スペシャル・サンクス
-本ツールは以下の方々にお世話になっております。また以下のソフトウェア、ウェブページを参考、使用しています。
-本当にありがとうございます。
-
-・おにたま(onionsoftware)様<br>
-・神たま(good-software)様<br>
-・UME-3様<br>
-・CAT-2様<br>
-・ぼうきち様<br>
-・kumatan様<br>
-
-・M88<br>
-・ePC-8801MA<br>
-・pasmo<br>
-・D88SARVER<br>
-・さくらエディタ<br>
-
-・bookworm's Libraly<br>
-・大深海水淵亭<br>
-
-### 更新履歴
-
-- 2020年01月24日 v1.00
-    - ALPHA-DOSをVer.2.98からVer.2.99に更新し、拡張RAM上のバイナリデータのセーブ・ロードに対応。
-    - エラーメッセージファイルが読み込まれないバグの修正。
-- 2019月11月17日 v0.30
-    - FM音色エディタの領域をメインRAMから拡張RAMに変更し、メインメモリのフリーエリアを拡大。
-    - 起動時の拡張RAM搭載チェック機構を改良。
-    - Jコマンドが正常に動作しないバグの修正。
-- 2019年10月25日 v0.20
-    - FMプリセット音色データの領域をメインRAMから拡張RAMに変更し、MMLソース領域とFMプリセット音色データの領域競合を改善。
-    - 起動時の拡張RAM搭載チェック機構を追加。
-    - FMプリセット音色(@0、@1)が壊れる仕様バグの修正。
-- 2019年10月22日 v0.10 初公開
-    - 曲バイナリデータ領域をメインRAMから拡張RAMに変更し、曲バイナリデータ領域のサイズを約8.5KBから32KBに拡大、及び曲バイナリデータ領域と演奏モニタ及びPCMデータアドレス情報の領域競合を改善。
-    - MMLソース領域とFM音色エディタ及びSSGプリセット音色データの領域競合を改善。
-    ＜フォルダの説明＞
-
-mucom88<br>
-|-- accessories		… オリジナルのPC88版MUCOM88向けアクセサリ<br>
-|-- mucom88em		… PC88拡張メモリ対応MUCOM88<br>
+- accessories …… MUCOM88アクセサリ。MUCOM88の各種改造ソースです。
+- mucom88em …… MUCOM88emの開発ソース・コンポーネント・ドキュメント類です。
