@@ -23,4 +23,4 @@ MUCOM88em(MUCOM88 Etended Memory Editionの略称)は、MUCOM88の最終バー�
 ### フォルダの説明
 
 - accessories …… MUCOM88アクセサリ。MUCOM88の各種改造ソースです。
-- mucom88em …… MUCOM88emの開発ソース・コンポーネント・ドキュメント類です。
+- mucom88em …… MUCOM88emの開発ソース・各種コンポーネント類です。
