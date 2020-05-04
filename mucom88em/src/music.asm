@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : music.asm (Z80アセンブラソース)
 ; 機能 : 演奏ルーチン
-; 更新日：2020/01/24
+; 更新日：2020/05/04
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmusic.asmを元に作成した物です。
 ;==========================================================================
@@ -73,7 +73,7 @@ PCMADR:	EQU	0E300H
 	
 ; -- 拡張RAM アクセス設定ルーチン --	;■追記
 	
-ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
+ERAM00:	EQU	095D0H			;■  拡張RAM ライト不可/リード不可
 ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
 ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
 ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
@@ -881,8 +881,10 @@ FMCOM:
 	
 FMCOM2:
 	JP	PVMCHG		;FFF0-PCM VOLUME MODE
-	JP	NTMEAN
-	JP	NTMEAN
+;	JP	NTMEAN						;■20200319修正前
+	JP	HRDENV		;FFF1-HARD ENVE SET 'S'		;■20200319修正後
+;	JP	NTMEAN						;■20200319修正前
+	JP	ENVPOD		;FFF2-HARD ENVE PERIOD		;■20200319修正後
 	JP	REVERVE		;FFF3-ﾘﾊﾞｰﾌﾞ
 	JP	REVMOD		;FFF4-ﾘﾊﾞｰﾌﾞﾓｰﾄﾞ
 	JP	REVSW		;FFF5-ﾘﾊﾞｰﾌﾞ ｽｲｯﾁ
@@ -1926,9 +1928,25 @@ SSSUB4:
 	JR	SSSUB9
 	
 SSSUBF:			; KEYON ｻﾚﾀﾄｷ ﾉ ｼｮﾘ
+	BIT	7,(IX+33)				;■20200415追加 ハードウェアエンベロープコマンドの追加
+	JR	Z,SSSUBG	; NOT HARD ENV.		;■
+	
+; ---	HARD ENV. KEY ON	---			;■
+	
+	LD	E,16					;■
+	LD	D,(IX+7)				;■
+	CALL	PSGOUT		; HARD ENV.KEYON	;■
+	
+	LD	A,(IX+33)				;■
+	AND	00001111B				;■
+	LD	E,A					;■
+	LD	D,0DH					;■
+	CALL	PSGOUT					;■
+	JR	SSSUBH					;■
 	
 ; ---	SOFT ENV. KEYON		---
 	
+SSSUBG:
 	LD	A,(IX+6)
 	AND	00001111B
 	OR	10010000B	;  TO STATE 1 (ATTACK)
@@ -1952,8 +1970,11 @@ SSSUB9:
 ;
 ;  ENTRY A: VOLUME DATA
 ;
-
+	
 SSSUB3:
+	BIT	7,(IX+33)					;■20200415追加 ハードウェアエンベロープコマンドの追加
+	JR	NZ,SETPT	; IF HARD ENVE THEN SETPT	;■
+	
 	LD	E,A
 	LD	A,(READY)
 	OR	A
@@ -1977,8 +1998,17 @@ SNUMB:				;  SSG o1 ﾉ ｼｭｳﾊｽｳ DATA
 	
 SSSUBA:
 	
+; --	HARD ENV. KEY OFF	--			;■20200415追加 ハードウェアエンベロープコマンドの追加
+	
+	BIT	7,(IX+33)				;■
+	JR	Z,SSUBAB	; NOT HARD ENV.		;■
+	LD	E,0					;■
+	LD	D,(IX+7)				;■
+	CALL	PSGOUT		; HARD ENV.KEYOFF	;■
+	
 ; --	SOFT ENV. KEY OFF	--
 	
+SSUBAB:							;■20200415追加 ハードウェアエンベロープコマンドの追加
 	BIT	5,(IX+33)
 	JR	Z,SSUBAC
 	RES	6,(IX+31)
@@ -2030,6 +2060,32 @@ PSGCOM:
 	JP	TIE
 	JP	RSKIP
 	JP	SECPRC		;FF- to sec com
+	
+; **	HARD ENVE SET	**				;■20200319追加
+	
+HRDENV:							;■
+	LD	E,(HL)					;■
+	INC	HL					;■
+	LD	D,0DH					;■
+	CALL	PSGOUT					;■
+	LD	A,E					;■
+	OR	10000000B	; SET H.E FLAG		;■
+	LD	(IX+33),A	; H.E MODE		;■
+	LD	(IX+6),16				;■
+	RET						;■
+	
+; **	HARD ENVE PERIOD	**			;■20200319追加
+	
+ENVPOD:							;■
+	LD	E,(HL)					;■
+	INC	HL					;■
+	LD	D,0BH					;■
+	CALL	PSGOUT					;■
+	LD	E,(HL)					;■
+	INC	HL					;■
+	INC	D					;■
+	CALL	PSGOUT					;■
+	RET						;■
 	
 ; **   WRITE REG   **
 	
@@ -2148,6 +2204,9 @@ VOLUPS:
 	LD	D,(HL)
 	INC	HL
 	
+	BIT	7,(IX+33)				;■20200319追加
+	RET	NZ					;■
+	
 	LD	A,(IX+6)
 	LD	E,A
 	AND	00001111B
@@ -2165,6 +2224,8 @@ VOLUPS:
 ; **	PSG VOLUME	**
 	
 PSGVOL:
+	RES	7,(IX+33)	; RES HARD ENV FLAG	;■20200319追加
+	
 	LD	A,(IX+6)
 	AND	11110000B
 	LD	E,A
@@ -2766,7 +2827,7 @@ PW2
 	
 ; **	MUSIC WORK	**
 	
-	ORG	0CFC0H		;■追記：ワークエリアのアドレス固定
+	ORG	0D000H		;■追記：ワークエリアのアドレス固定
 	
 NOTSB2:	DB	0
 PVMODE:	DB	0	;PCMvolMODE

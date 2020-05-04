@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : msub.asm (Z80アセンブラソース)
 ; 機能 : 各種サブルーチン
-; 更新日：2019/10/25
+; 更新日：2020/05/04
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmsub.asmを元に作成した物です。
 ;==========================================================================
@@ -1118,7 +1118,8 @@ FCOMS:			; COMMANDs
 	DB	'['	; LOOP START
 	DB	']'	; LOOP END
 	
-	DB	'S'	; SE DETUNE
+;	DB	'S'	; SE DETUNE			;■20200319変更前
+	DB	'S'	; SE DETUNE / HARD ENVE SET	;■20200319変更後 SSGハードウェアエンベロープコマンド追加
 	DB	'L'	; JUMP RESTART ADR
 	DB	'q'	; COMMAND OF 'q'
 	DB	'E'	; SOFT ENV
@@ -1133,8 +1134,6 @@ FCOMS:			; COMMANDs
 	DB      '/'	; REPEAT JUMP
 	DB	'V'	; TOTAL VOLUME OFFSET
 	DB	'\'	; BEFORE CODE
-;	DB	's'	; HARD ENVE SET
-;	DB	'm'	; HARD ENVE PERIOD
 	DB	'k'	; KEY SHIFT 2
 	DB	's'	; KEY ON REVISE
 	
@@ -1154,6 +1153,7 @@ FCOMS:			; COMMANDs
 	DB	'}'	; ﾏｸﾛｴﾝﾄﾞ
 	DB	'{'	; ﾎﾟﾙﾀﾒﾝﾄｽﾀｰﾄ
 	DB	'#'	; FLAG SET
+	DB	'm'	; HARD ENVE PERIOD		;■20200415追加 SSGハードウェアエンベロープコマンド追加
 	
 	DB	0
 	
@@ -1163,9 +1163,9 @@ ERRORMSG:
 	
 ; **	拡張RAM アクセス設定ルーチン	**	;■追記
 
-	ORG	095A0H			;■
+	ORG	095D0H			;■20200319変更
 
-	JP	ERAM00			;■
+	JP	ERAM00			;■追記
 	JP	ERAM01			;■
 	JP	ERAM10			;■
 	JP	ERAM11			;■
