@@ -2,7 +2,7 @@
 ; MUCOM88 Extended Memory Edition (MUCOM88em)
 ; ファイル名 : muc88.asm (Z80アセンブラソース)
 ; 機能 : コマンド処理・コンパイラ
-; 更新日：2020/01/24
+; 更新日：2020/05/04
 ;==========================================================================
 ; ※本ソースはMUSICLALF Ver.1.2のmuc88.asmを元に作成した物です。
 ;==========================================================================
@@ -147,7 +147,7 @@ JPLINE:	EQU	JCLOCK+2
 	
 ; -- 拡張RAM アクセス設定ルーチン --	;■追記
 	
-ERAM00:	EQU	095A0H			;■  拡張RAM ライト不可/リード不可
+ERAM00:	EQU	095D0H			;■  拡張RAM ライト不可/リード不可
 ERAM01:	EQU	ERAM00+3		;■  拡張RAM ライト不可/リード可
 ERAM10:	EQU	ERAM00+6		;■  拡張RAM ライト可/リード不可
 ERAM11:	EQU	ERAM00+9		;■  拡張RAM ライト可/リード可
@@ -1241,6 +1241,7 @@ COMTBL:
 	JP	ENDMAC
 	JP	SETPTM
 	JP	SETFLG
+	JP	SETHEP		;■20200319追加
 NTMN3:
 	INC	HL
 	JP	FCOMP1
@@ -1600,6 +1601,32 @@ SETDCO:
 	LD	A,E
 	LD	(COUNT),A
 	JP	FCOMP12
+	
+; *	SET HARD ENVE TYPE/FLAG	*	;■20200414追加 ハードウェアエンベロープコマンドの追加
+	
+SETHE:					;■
+	CALL	CHCHK			;■
+	JP	NC,ERRDC		;■
+	INC	HL			;■
+	LD	A,0FFH			;■
+	LD	E,0F1H	; 2nd COM	;■
+	CALL	MWRITE			;■
+	CALL	REDATA			;■
+	LD	A,E			;■
+	CALL	MWRIT2			;■
+	JP	FCOMP1			;■
+SETHEP:					;■
+	CALL	CHCHK			;■
+	JP	NC,ERRDC		;■
+	INC	HL			;■
+	LD	A,0FFH			;■
+	LD	E,0F2H			;■
+	CALL	MWRITE			;■
+	CALL	REDATA			;■
+	LD	A,E			;■
+	LD	E,D			;■
+	CALL	MWRITE	; 2ﾊﾞｲﾄﾃﾞｰﾀ ｶｸ	;■
+	JP	FCOMP1			;■
 	
 ; *	BEFORE CODE	*
 	
@@ -2200,7 +2227,8 @@ SETLPEE:
 SETSE:
 	LD	A,(COMNOW)
 	CP	2
-	JP	NZ,ERRDC	; 3 Ch ｲｶﾞｲﾅﾗ ERROR
+;	JP	NZ,ERRDC	; 3 Ch ｲｶﾞｲﾅﾗ ERROR			;■20200415変更前 ハードウェアエンベロープコマンドの追加
+	JP	NZ,SETHE	; 3 Ch ｲｶﾞｲﾅﾗ SET HARD ENVE TYPE ﾍ	;■20200415変更後
 	
 	CALL	ERRT
 	
@@ -2436,7 +2464,8 @@ SETREG:
 	OR	A
 	JP	NZ,ERRIF
 	
-	LD	A,0B2H
+;	LD	A,0B2H		;■20200415修正前 yコマンドの範囲チェックのbug fix
+	LD	A,0B6H		;■20200415修正後
 	CP	E
 	JP	C,ERRIF
 	
@@ -3490,7 +3519,7 @@ LNKTXT:	DB	3AH,8FH,0E9H,20H,20H	; 5 ｺ
 	
 MACFG:	DB	0	;0>< AS MACRO PRC
 ;MESS:	DB	'[  MUSICLALF Ver:1.2 ] Address'	;■変更前：メイン画面のバージョン表示
-MESS:	DB	'[ MUCOM88em Ver:1.00 ] Address'	;■変更後
+MESS:	DB	'[ MUCOM88em Ver:1.01 ] Address'	;■変更後 20200415
 	DB	':    -    (    )         [ 00:00 ] MODE:'
 MESNML:	DB	'NORMAL  '
 	DB	'LINC    '
