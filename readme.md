@@ -2,7 +2,7 @@
 
 MUOM88は、1987年より古代祐三氏によって開発・発表されたNEC PC-8801プラットフォーム用のMML形式による音楽作成ツール、及び再生用のプログラム(サウンドドライバ)環境です。<br>
 
-MUCOM88em(MUCOM88 Etended Memory Edition)は、MUCOM88の最終バージョン(Ver.1.7)をPC-8801シリーズ用の拡張RAMに対応させる事により、従来よりも大きな楽曲の作成と演奏を可能にした改造版です。<br>
+MUCOM88em(MUCOM88 Extended Memory Edition)は、MUCOM88の最終バージョン(Ver.1.7)をPC-8801シリーズ用の拡張RAMに対応させる事により、従来よりも大きな楽曲の作成と演奏を可能にした改造版です。<br>
 
 ここでは主にMUCOM88emの開発、及びMUCOM88の各種改造を行っています。
 
@@ -24,5 +24,3 @@ MUCOM88em(MUCOM88 Etended Memory Edition)は、MUCOM88の最終バージョン(V
 
 - [OPEN MUCOM88 Wiki (ONION software/おにたま様)](https://github.com/onitama/mucom88/wiki)<br>
    …… OPEN MUCOM88 公式Wikiサイト。MUCOM88の各種情報はこちらのサイトをご参照下さい。
-
-
