@@ -13,7 +13,7 @@ MUCOM88em(MUCOM88 Extended Memory Edition)は、MUCOM88の最終バージョン(
 
 ### 関連リンク
 
-- [MUCOM88em Wiki](https://github.com/MUCOM88/mucom88/wiki)<br>
+- [MUCOM88em Wiki](https://github.com/MUCOM88/mucom88em/wiki)<br>
    …… MUCOM88emのWikiサイト。MUCOM88emの詳細はこちらのサイトをご参照下さい。
 
 - [MUCOM88em/SPLIT-i/ALPHA-DOS product page (ONION software/おにたま様)](https://onitama.tv/alphados/)<br>
